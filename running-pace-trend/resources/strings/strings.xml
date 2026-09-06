@@ -1,0 +1,6 @@
+<strings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+    <string id="AppName">running-pace-trend</string>
+    <string id="RunningPaceLabel" scope="glance">RUNNING PACE</string>
+    <string id="RunningPaceUnit" scope="glance">/km</string>
+    <string id="RunningPaceInsufficientData" scope="glance">Not enough runs yet</string>
+</strings>
