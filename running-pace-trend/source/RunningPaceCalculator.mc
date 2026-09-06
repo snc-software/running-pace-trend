@@ -16,7 +16,20 @@ class RunningPaceCalculator {
     // on wall-clock time.
     static function calculate(records as Array<RunningActivityRecord>, now as Time.Moment) as Dictionary {
         var windowStart = now.subtract(new Time.Duration(ROLLING_WINDOW_DAYS * SECONDS_PER_DAY)) as Time.Moment;
+        var result = calculateForWindow(records, windowStart, null);
 
+        return {
+            "runningPaceHasSufficientData" => result["runningPaceHasSufficientData"],
+            "runningPaceSecondsPerKm" => result["runningPaceSecondsPerKm"],
+            "runningPaceLastComputedAt" => now.value()
+        };
+    }
+
+    // Shared aggregation logic behind `calculate()` and RunningPaceTrendCalculator,
+    // so the distance-weighted pace formula lives in exactly one place. A null
+    // `windowEndExclusive` means "no upper bound" (matches `calculate()`'s own
+    // "up to now" behaviour).
+    static function calculateForWindow(records as Array<RunningActivityRecord>, windowStart as Time.Moment, windowEndExclusive as Time.Moment?) as Dictionary {
         var totalDistanceMeters = 0;
         var totalDurationSeconds = 0;
 
@@ -42,6 +55,9 @@ class RunningPaceCalculator {
             if (startMoment.lessThan(windowStart)) {
                 continue;
             }
+            if (windowEndExclusive != null && !startMoment.lessThan(windowEndExclusive)) {
+                continue;
+            }
 
             totalDistanceMeters += distanceMeters;
             totalDurationSeconds += durationSeconds;
@@ -50,8 +66,7 @@ class RunningPaceCalculator {
         if (totalDistanceMeters <= 0) {
             return {
                 "runningPaceHasSufficientData" => false,
-                "runningPaceSecondsPerKm" => null,
-                "runningPaceLastComputedAt" => now.value()
+                "runningPaceSecondsPerKm" => null
             };
         }
 
@@ -61,8 +76,7 @@ class RunningPaceCalculator {
 
         return {
             "runningPaceHasSufficientData" => true,
-            "runningPaceSecondsPerKm" => secondsPerKm,
-            "runningPaceLastComputedAt" => now.value()
+            "runningPaceSecondsPerKm" => secondsPerKm
         };
     }
 
