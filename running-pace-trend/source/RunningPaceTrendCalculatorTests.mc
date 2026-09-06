@@ -15,6 +15,7 @@ function identifiesFasterTrendWhenCurrentPaceIsBetterThanPrevious(logger as Logg
 
     Test.assertEqualMessage(result["runningPaceTrendHasSufficientData"], true, "both periods have qualifying runs");
     Test.assertEqualMessage(result["runningPaceTrendDirection"], RUNNING_PACE_TREND_DIRECTION_FASTER, "300 s/km current vs 360 s/km previous is faster");
+    Test.assertEqualMessage(result["runningPaceTrendDeltaSecondsPerKm"], 60, "delta must be the absolute difference regardless of direction");
     return true;
 }
 
@@ -30,6 +31,7 @@ function identifiesSlowerTrendWhenCurrentPaceIsWorseThanPrevious(logger as Logge
 
     Test.assertEqualMessage(result["runningPaceTrendHasSufficientData"], true, "both periods have qualifying runs");
     Test.assertEqualMessage(result["runningPaceTrendDirection"], RUNNING_PACE_TREND_DIRECTION_SLOWER, "360 s/km current vs 300 s/km previous is slower");
+    Test.assertEqualMessage(result["runningPaceTrendDeltaSecondsPerKm"], 60, "delta must be the absolute difference regardless of direction");
     return true;
 }
 
@@ -45,6 +47,7 @@ function identifiesUnchangedTrendWhenPacesAreEqual(logger as Logger) as Boolean 
 
     Test.assertEqualMessage(result["runningPaceTrendHasSufficientData"], true, "both periods have qualifying runs");
     Test.assertEqualMessage(result["runningPaceTrendDirection"], RUNNING_PACE_TREND_DIRECTION_UNCHANGED, "equal weighted pace in both periods is unchanged");
+    Test.assertEqualMessage(result["runningPaceTrendDeltaSecondsPerKm"], 0, "equal weighted pace in both periods must report a zero delta");
     return true;
 }
 
@@ -61,6 +64,7 @@ function reportsInsufficientDataWhenCurrentPeriodHasNoQualifyingRuns(logger as L
     Test.assertMessage(result["runningPaceTrendCurrentSecondsPerKm"] == null, "current pace must be null without current-period data");
     Test.assertMessage(result["runningPaceTrendPreviousSecondsPerKm"] != null, "previous pace should still be populated");
     Test.assertMessage(result["runningPaceTrendDirection"] == null, "direction must be null when data is insufficient");
+    Test.assertMessage(result["runningPaceTrendDeltaSecondsPerKm"] == null, "delta must be null when data is insufficient");
     return true;
 }
 
@@ -77,6 +81,7 @@ function reportsInsufficientDataWhenPreviousPeriodHasNoQualifyingRuns(logger as 
     Test.assertMessage(result["runningPaceTrendPreviousSecondsPerKm"] == null, "previous pace must be null without previous-period data");
     Test.assertMessage(result["runningPaceTrendCurrentSecondsPerKm"] != null, "current pace should still be populated");
     Test.assertMessage(result["runningPaceTrendDirection"] == null, "direction must be null when data is insufficient");
+    Test.assertMessage(result["runningPaceTrendDeltaSecondsPerKm"] == null, "delta must be null when data is insufficient");
     return true;
 }
 
@@ -91,6 +96,7 @@ function reportsInsufficientDataWhenNeitherPeriodHasQualifyingRuns(logger as Log
     Test.assertMessage(result["runningPaceTrendCurrentSecondsPerKm"] == null, "current pace must be null");
     Test.assertMessage(result["runningPaceTrendPreviousSecondsPerKm"] == null, "previous pace must be null");
     Test.assertMessage(result["runningPaceTrendDirection"] == null, "direction must be null");
+    Test.assertMessage(result["runningPaceTrendDeltaSecondsPerKm"] == null, "delta must be null");
     return true;
 }
 

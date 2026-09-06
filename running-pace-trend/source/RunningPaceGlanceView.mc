@@ -35,7 +35,25 @@ class RunningPaceGlanceView extends WatchUi.GlanceView {
             valueText = WatchUi.loadResource(Rez.Strings.RunningPaceInsufficientData) as String;
         }
 
-        dc.drawText(centerX, height / 2, Graphics.FONT_TINY, valueText, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(centerX, height * 0.35, Graphics.FONT_TINY, valueText, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+
+        var trendHasSufficientData = Application.Storage.getValue("runningPaceTrendHasSufficientData") as Boolean?;
+        var trendDirection = Application.Storage.getValue("runningPaceTrendDirection") as Number?;
+        var trendDeltaSecondsPerKm = Application.Storage.getValue("runningPaceTrendDeltaSecondsPerKm") as Number?;
+
+        if (trendHasSufficientData == true && trendDirection != null && trendDeltaSecondsPerKm != null) {
+            var suffix;
+            if (trendDirection == RUNNING_PACE_TREND_DIRECTION_FASTER) {
+                suffix = WatchUi.loadResource(Rez.Strings.RunningPaceTrendFasterSuffix) as String;
+            } else if (trendDirection == RUNNING_PACE_TREND_DIRECTION_SLOWER) {
+                suffix = WatchUi.loadResource(Rez.Strings.RunningPaceTrendSlowerSuffix) as String;
+            } else {
+                suffix = WatchUi.loadResource(Rez.Strings.RunningPaceTrendUnchangedSuffix) as String;
+            }
+
+            var trendText = RunningPaceTrendFormatter.format(trendDirection, trendDeltaSecondsPerKm) + " " + suffix;
+            dc.drawText(centerX, height * 0.75, Graphics.FONT_XTINY, trendText, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        }
     }
 
 }
