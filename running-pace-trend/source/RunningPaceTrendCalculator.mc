@@ -29,6 +29,7 @@ class RunningPaceTrendCalculator {
         var hasSufficientData = currentHasSufficientData && previousHasSufficientData;
 
         var direction = null;
+        var deltaSecondsPerKm = null;
         if (hasSufficientData) {
             var currentSecondsPerKm = current["runningPaceSecondsPerKm"] as Number;
             var previousSecondsPerKm = previous["runningPaceSecondsPerKm"] as Number;
@@ -40,13 +41,16 @@ class RunningPaceTrendCalculator {
             } else {
                 direction = RUNNING_PACE_TREND_DIRECTION_UNCHANGED;
             }
+
+            deltaSecondsPerKm = (currentSecondsPerKm - previousSecondsPerKm).abs();
         }
 
         return {
             "runningPaceTrendHasSufficientData" => hasSufficientData,
             "runningPaceTrendCurrentSecondsPerKm" => current["runningPaceSecondsPerKm"],
             "runningPaceTrendPreviousSecondsPerKm" => previous["runningPaceSecondsPerKm"],
-            "runningPaceTrendDirection" => direction
+            "runningPaceTrendDirection" => direction,
+            "runningPaceTrendDeltaSecondsPerKm" => deltaSecondsPerKm
         };
     }
 

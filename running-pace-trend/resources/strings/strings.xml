@@ -3,4 +3,7 @@
     <string id="RunningPaceLabel" scope="glance">RUNNING PACE</string>
     <string id="RunningPaceUnit" scope="glance">/km</string>
     <string id="RunningPaceInsufficientData" scope="glance">Not enough runs yet</string>
+    <string id="RunningPaceTrendFasterSuffix" scope="glance">sec/km faster</string>
+    <string id="RunningPaceTrendSlowerSuffix" scope="glance">sec/km slower</string>
+    <string id="RunningPaceTrendUnchangedSuffix" scope="glance">sec/km</string>
 </strings>

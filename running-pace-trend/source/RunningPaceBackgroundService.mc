@@ -19,11 +19,17 @@ class RunningPaceBackgroundService extends System.ServiceDelegate {
         try {
             var reader = new RunningActivityHistoryReader();
             var records = reader.readAll();
-            var result = RunningPaceCalculator.calculate(records, Time.now());
+            var now = Time.now();
+            var result = RunningPaceCalculator.calculate(records, now);
+            var trendResult = RunningPaceTrendCalculator.compare(records, now);
 
             Application.Storage.setValue("runningPaceHasSufficientData", result["runningPaceHasSufficientData"] as Boolean);
             Application.Storage.setValue("runningPaceSecondsPerKm", result["runningPaceSecondsPerKm"] as Number?);
             Application.Storage.setValue("runningPaceLastComputedAt", result["runningPaceLastComputedAt"] as Number);
+
+            Application.Storage.setValue("runningPaceTrendHasSufficientData", trendResult["runningPaceTrendHasSufficientData"] as Boolean);
+            Application.Storage.setValue("runningPaceTrendDirection", trendResult["runningPaceTrendDirection"] as Number?);
+            Application.Storage.setValue("runningPaceTrendDeltaSecondsPerKm", trendResult["runningPaceTrendDeltaSecondsPerKm"] as Number?);
         } catch (exception instanceof Lang.Exception) {
             // Leave any previously computed Storage values in place rather than
             // overwrite good data with a transient read failure; the Glance keeps
