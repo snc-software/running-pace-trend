@@ -22,13 +22,13 @@ class RunningPaceGlanceView extends WatchUi.GlanceView {
         var centerX = width / 2;
 
         var label = WatchUi.loadResource(Rez.Strings.RunningPaceLabel) as String;
-        dc.drawText(centerX, 0, Graphics.FONT_XTINY, label, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(centerX, height * 0.05, Graphics.FONT_XTINY, label, Graphics.TEXT_JUSTIFY_CENTER);
 
         var hasSufficientData = Application.Storage.getValue("runningPaceHasSufficientData") as Boolean?;
         var secondsPerKm = Application.Storage.getValue("runningPaceSecondsPerKm") as Number?;
 
         var valueText;
-        if (hasSufficientData == true && secondsPerKm != null) {
+        if (RunningPaceGlanceContent.resolveValueState(hasSufficientData, secondsPerKm) == RUNNING_PACE_GLANCE_VALUE_STATE_AVAILABLE) {
             var unit = WatchUi.loadResource(Rez.Strings.RunningPaceUnit) as String;
             valueText = RunningPaceFormatter.format(secondsPerKm) + " " + unit;
         } else {
@@ -41,7 +41,7 @@ class RunningPaceGlanceView extends WatchUi.GlanceView {
         var trendDirection = Application.Storage.getValue("runningPaceTrendDirection") as Number?;
         var trendDeltaSecondsPerKm = Application.Storage.getValue("runningPaceTrendDeltaSecondsPerKm") as Number?;
 
-        if (trendHasSufficientData == true && trendDirection != null && trendDeltaSecondsPerKm != null) {
+        if (RunningPaceGlanceContent.shouldShowTrend(trendHasSufficientData, trendDirection, trendDeltaSecondsPerKm)) {
             var suffix;
             if (trendDirection == RUNNING_PACE_TREND_DIRECTION_FASTER) {
                 suffix = WatchUi.loadResource(Rez.Strings.RunningPaceTrendFasterSuffix) as String;
