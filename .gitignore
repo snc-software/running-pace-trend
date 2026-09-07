@@ -1,6 +1,9 @@
 # Build 
 bin/
 
+# Resources
+running-data.csv
+
 # MacOS
 .DS_Store
 
