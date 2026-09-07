@@ -130,6 +130,36 @@ function handlesZeroDistanceActivitySafely(logger as Logger) as Boolean {
 }
 
 (:test)
+function handlesZeroDurationActivitySafely(logger as Logger) as Boolean {
+    var now = new Time.Moment(100000000);
+    var records = [
+        new RunningActivityRecord(5000, 0, 100000000, Activity.SPORT_RUNNING)
+    ] as Array<RunningActivityRecord>;
+
+    var result = RunningPaceCalculator.calculate(records, now);
+
+    Test.assertEqualMessage(result["runningPaceHasSufficientData"], false, "a zero-duration run must not be treated as a fabricated near-instant pace");
+    Test.assertEqualMessage(result["runningPaceTotalDistanceMeters"], 0, "a zero-duration run must not contribute to total distance");
+    Test.assertEqualMessage(result["runningPaceQualifyingActivityCount"], 0, "a zero-duration run must not be counted");
+    return true;
+}
+
+(:test)
+function handlesNegativeDurationActivitySafely(logger as Logger) as Boolean {
+    var now = new Time.Moment(100000000);
+    var records = [
+        new RunningActivityRecord(5000, -100, 100000000, Activity.SPORT_RUNNING)
+    ] as Array<RunningActivityRecord>;
+
+    var result = RunningPaceCalculator.calculate(records, now);
+
+    Test.assertEqualMessage(result["runningPaceHasSufficientData"], false, "a negative-duration (corrupt) record must not be counted as qualifying");
+    Test.assertEqualMessage(result["runningPaceTotalDistanceMeters"], 0, "a negative-duration record must not contribute to total distance");
+    Test.assertEqualMessage(result["runningPaceQualifyingActivityCount"], 0, "a negative-duration record must not be counted");
+    return true;
+}
+
+(:test)
 function handlesRecordsWithNullFieldsSafely(logger as Logger) as Boolean {
     var now = new Time.Moment(100000000);
     var records = [
