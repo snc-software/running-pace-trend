@@ -20,8 +20,14 @@ class running_pace_trendView extends WatchUi.View {
     }
 
     function onUpdate(dc as Dc) as Void {
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        // clear() erases using the background color (Dc.html), so it must be
+        // opaque here - COLOR_TRANSPARENT would leave the previous frame's
+        // pixels in place, which becomes visible once this view is reachable
+        // via push/pop navigation (US-07 / #12) rather than being the only
+        // screen in the app.
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
 
         var width = dc.getWidth();
         var height = dc.getHeight();

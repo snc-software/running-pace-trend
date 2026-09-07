@@ -14,8 +14,12 @@ class RunningPaceTrendGraphView extends WatchUi.View {
     }
 
     function onUpdate(dc as Dc) as Void {
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        // clear() erases using the background color (Dc.html), so it must be
+        // opaque here - COLOR_TRANSPARENT would leave running_pace_trendView's
+        // last frame showing through underneath this screen.
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
 
         var width = dc.getWidth();
         var height = dc.getHeight();
