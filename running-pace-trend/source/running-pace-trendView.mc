@@ -20,8 +20,14 @@ class running_pace_trendView extends WatchUi.View {
     }
 
     function onUpdate(dc as Dc) as Void {
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        // clear() erases using the background color (Dc.html), so it must be
+        // opaque here - COLOR_TRANSPARENT would leave the previous frame's
+        // pixels in place, which becomes visible once this view is reachable
+        // via push/pop navigation (US-07 / #12) rather than being the only
+        // screen in the app.
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
 
         var width = dc.getWidth();
         var height = dc.getHeight();
@@ -85,6 +91,9 @@ class running_pace_trendView extends WatchUi.View {
         var runsLabel = WatchUi.loadResource(Rez.Strings.RunningTrendDetailRunsLabel) as String;
         var runsText = runsLabel + " " + qualifyingActivityCount.toString();
         dc.drawText(centerX, height * 0.86, Graphics.FONT_TINY, runsText, Graphics.TEXT_JUSTIFY_CENTER);
+
+        var selectHint = WatchUi.loadResource(Rez.Strings.RunningTrendDetailSelectHint) as String;
+        dc.drawText(centerX, height * 0.94, Graphics.FONT_XTINY, selectHint, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     // Called when this View is removed from the screen. Save the
