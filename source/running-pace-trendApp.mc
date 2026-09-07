@@ -27,9 +27,10 @@ class running_pace_trendApp extends Application.AppBase {
     function onStop(state as Dictionary?) as Void {
     }
 
-    // Return the initial view of your application here
+    // Return the initial view of your application here. The graph screen is
+    // screen 1 (#29).
     function getInitialView() as [Views] or [Views, InputDelegates] {
-        return [ new running_pace_trendView(), new RunningPaceTrendDetailDelegate() ];
+        return [ new RunningPaceTrendGraphView(), new RunningPaceTrendNavigationDelegate(RUNNING_PACE_TREND_PAGE_GRAPH) ];
     }
 
     (:glance)

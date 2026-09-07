@@ -2,6 +2,7 @@ import Toybox.Lang;
 
 // Pure display formatting, decoupled from GlanceView so it can be unit tested
 // without a device (coding-standards.md Testing section).
+(:glance)
 class RunningPaceFormatter {
 
     private static const SECONDS_PER_MINUTE = 60;

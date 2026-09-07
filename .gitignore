@@ -1,5 +1,6 @@
 # Build 
 bin/
+developer_key
 
 # Resources
 running-data.csv

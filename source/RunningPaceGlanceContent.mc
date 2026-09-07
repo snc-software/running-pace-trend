@@ -9,6 +9,7 @@ enum {
 // it can be unit tested without a device (coding-standards.md Testing
 // section). Mirrors the exact conditions RunningPaceGlanceView.onUpdate()
 // evaluates inline today - no behaviour change.
+(:glance)
 class RunningPaceGlanceContent {
 
     static function resolveValueState(hasSufficientData as Boolean?, secondsPerKm as Number?) as Number {
