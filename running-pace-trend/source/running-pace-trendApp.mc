@@ -29,7 +29,7 @@ class running_pace_trendApp extends Application.AppBase {
 
     // Return the initial view of your application here
     function getInitialView() as [Views] or [Views, InputDelegates] {
-        return [ new running_pace_trendView() ];
+        return [ new running_pace_trendView(), new RunningPaceTrendDetailDelegate() ];
     }
 
     (:glance)
