@@ -18,6 +18,13 @@ function identifiesFasterTrendWhenCurrentPaceIsBetterThanPrevious(logger as Logg
     Test.assertEqualMessage(result["runningPaceTrendDirection"], RUNNING_PACE_TREND_DIRECTION_FASTER, "300 s/km current vs 360 s/km previous is faster");
     Test.assertEqualMessage(result["runningPaceTrendDeltaSecondsPerKm"], 60, "delta must be the absolute difference regardless of direction");
     Test.assertEqualMessage(result["runningPaceTrendPercentChangeTenths"], 167, "(60*1000+180)/360 rounds to 167 tenths of a percent");
+
+    var todayStart = RunningPaceDayBoundary.startOfDay(now);
+    var expectedCurrentWindowStart = todayStart.subtract(new Time.Duration(30 * 86400)) as Time.Moment;
+    var expectedPreviousWindowStart = todayStart.subtract(new Time.Duration(60 * 86400)) as Time.Moment;
+    Test.assertEqualMessage(result["runningPaceTrendPreviousWindowStartEpoch"], expectedPreviousWindowStart.value(), "previous window start must be 60 days before today's midnight boundary");
+    Test.assertEqualMessage(result["runningPaceTrendCurrentWindowStartEpoch"], expectedCurrentWindowStart.value(), "current window start must be 30 days before today's midnight boundary");
+    Test.assertEqualMessage(result["runningPaceTrendCurrentWindowEndEpoch"], now.value(), "current window end must be the injected 'now' moment");
     return true;
 }
 

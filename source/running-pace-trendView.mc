@@ -68,15 +68,28 @@ class running_pace_trendView extends WatchUi.View {
 
         var paceUnit = WatchUi.loadResource(Rez.Strings.RunningTrendDetailUnit) as String;
         var currentSecondsPerKm = Application.Storage.getValue("runningPaceSecondsPerKm") as Number;
+        var currentWindowStartEpoch = Application.Storage.getValue("runningPaceTrendCurrentWindowStartEpoch") as Number;
+        var currentWindowEndEpoch = Application.Storage.getValue("runningPaceTrendCurrentWindowEndEpoch") as Number;
+        var currentRangeText = RunningPaceTrendDateFormatter.formatRange(currentWindowStartEpoch, currentWindowEndEpoch);
+        var currentText = currentRangeText + ": " + RunningPaceFormatter.format(currentSecondsPerKm) + paceUnit;
         var currentLabel = WatchUi.loadResource(Rez.Strings.RunningTrendDetailCurrentLabel) as String;
-        var currentText = currentLabel + " " + RunningPaceFormatter.format(currentSecondsPerKm) + paceUnit;
-        dc.drawText(centerX, height * 0.26, Graphics.FONT_TINY, currentText, Graphics.TEXT_JUSTIFY_CENTER);
 
         if (state == RUNNING_PACE_TREND_DETAIL_STATE_FULL) {
+            // Previous period drawn above current (#37) - date ranges put the
+            // content in chronological order, unlike the old "Current"/
+            // "Previous" labels which had no inherent order to preserve. Each
+            // period still gets a small label above its own range, just for
+            // an at-a-glance cue rather than as the primary content.
             var previousSecondsPerKm = Application.Storage.getValue("runningPaceTrendPreviousSecondsPerKm") as Number;
+            var previousWindowStartEpoch = Application.Storage.getValue("runningPaceTrendPreviousWindowStartEpoch") as Number;
+            var previousRangeText = RunningPaceTrendDateFormatter.formatRange(previousWindowStartEpoch, currentWindowStartEpoch);
+            var previousText = previousRangeText + ": " + RunningPaceFormatter.format(previousSecondsPerKm) + paceUnit;
             var previousLabel = WatchUi.loadResource(Rez.Strings.RunningTrendDetailPreviousLabel) as String;
-            var previousText = previousLabel + " " + RunningPaceFormatter.format(previousSecondsPerKm) + paceUnit;
-            dc.drawText(centerX, height * 0.38, Graphics.FONT_TINY, previousText, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(centerX, height * 0.19, Graphics.FONT_XTINY, previousLabel, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(centerX, height * 0.27, Graphics.FONT_TINY, previousText, Graphics.TEXT_JUSTIFY_CENTER);
+
+            dc.drawText(centerX, height * 0.38, Graphics.FONT_XTINY, currentLabel, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(centerX, height * 0.46, Graphics.FONT_TINY, currentText, Graphics.TEXT_JUSTIFY_CENTER);
 
             var direction = Application.Storage.getValue("runningPaceTrendDirection") as Number;
             var deltaSecondsPerKm = Application.Storage.getValue("runningPaceTrendDeltaSecondsPerKm") as Number;
@@ -91,12 +104,18 @@ class running_pace_trendView extends WatchUi.View {
             }
 
             var deltaText = deltaSecondsPerKm.toString() + " " + deltaSuffix;
-            dc.drawText(centerX, height * 0.52, Graphics.FONT_XTINY, deltaText, Graphics.TEXT_JUSTIFY_CENTER);
 
             var percentChangeTenths = Application.Storage.getValue("runningPaceTrendPercentChangeTenths") as Number;
             var percentText = RunningPaceTrendFormatter.formatPercent(percentChangeTenths);
-            dc.drawText(centerX, height * 0.62, Graphics.FONT_XTINY, percentText, Graphics.TEXT_JUSTIFY_CENTER);
+
+            // Percent wrapped into the delta line rather than its own row
+            // (#37) - it doesn't carry enough information on its own to
+            // justify a dedicated line.
+            var combinedText = RunningPaceTrendFormatter.combineDeltaAndPercent(deltaText, percentText);
+            dc.drawText(centerX, height * 0.58, Graphics.FONT_XTINY, combinedText, Graphics.TEXT_JUSTIFY_CENTER);
         } else {
+            dc.drawText(centerX, height * 0.19, Graphics.FONT_XTINY, currentLabel, Graphics.TEXT_JUSTIFY_CENTER);
+            dc.drawText(centerX, height * 0.27, Graphics.FONT_TINY, currentText, Graphics.TEXT_JUSTIFY_CENTER);
             var insufficientHistoryMessage = WatchUi.loadResource(Rez.Strings.RunningTrendDetailInsufficientHistory) as String;
             dc.drawText(centerX, height * 0.45, Graphics.FONT_XTINY, insufficientHistoryMessage, Graphics.TEXT_JUSTIFY_CENTER);
         }
@@ -105,12 +124,12 @@ class running_pace_trendView extends WatchUi.View {
         var distanceLabel = WatchUi.loadResource(Rez.Strings.RunningTrendDetailDistanceLabel) as String;
         var distanceUnit = WatchUi.loadResource(Rez.Strings.RunningTrendDetailDistanceUnit) as String;
         var distanceText = distanceLabel + " " + RunningPaceDistanceFormatter.format(totalDistanceMeters) + " " + distanceUnit;
-        dc.drawText(centerX, height * 0.76, Graphics.FONT_TINY, distanceText, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(centerX, height * 0.68, Graphics.FONT_TINY, distanceText, Graphics.TEXT_JUSTIFY_CENTER);
 
         var qualifyingActivityCount = Application.Storage.getValue("runningPaceQualifyingActivityCount") as Number;
         var runsLabel = WatchUi.loadResource(Rez.Strings.RunningTrendDetailRunsLabel) as String;
         var runsText = runsLabel + " " + qualifyingActivityCount.toString();
-        dc.drawText(centerX, height * 0.86, Graphics.FONT_TINY, runsText, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(centerX, height * 0.78, Graphics.FONT_TINY, runsText, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     // Called when this View is removed from the screen. Save the

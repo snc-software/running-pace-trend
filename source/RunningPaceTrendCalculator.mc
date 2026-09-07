@@ -68,7 +68,17 @@ class RunningPaceTrendCalculator {
             "runningPaceTrendPreviousSecondsPerKm" => previous["runningPaceSecondsPerKm"],
             "runningPaceTrendDirection" => direction,
             "runningPaceTrendDeltaSecondsPerKm" => deltaSecondsPerKm,
-            "runningPaceTrendPercentChangeTenths" => percentChangeTenths
+            "runningPaceTrendPercentChangeTenths" => percentChangeTenths,
+            // Window boundaries (#37), so the detail screen can show each
+            // period's actual date range instead of meaningless
+            // "Current"/"Previous" labels. Computed unconditionally, like the
+            // windows themselves, since they don't depend on data
+            // sufficiency. previousWindowStart's counterpart end boundary is
+            // deliberately not duplicated here - it's the same instant as
+            // currentWindowStart, so callers reuse that value for both.
+            "runningPaceTrendPreviousWindowStartEpoch" => previousWindowStart.value(),
+            "runningPaceTrendCurrentWindowStartEpoch" => currentWindowStart.value(),
+            "runningPaceTrendCurrentWindowEndEpoch" => now.value()
         };
     }
 

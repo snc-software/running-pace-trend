@@ -39,4 +39,13 @@ class RunningPaceTrendFormatter {
         return wholePercent.toString() + "." + remainderTenths.toString() + "%";
     }
 
+    // Combines the delta text (already suffixed by the caller with its
+    // direction-appropriate wording) with the percent text in parentheses on
+    // a single line (#37), e.g. ("16 sec/km faster", "3.4%") ->
+    // "16 sec/km faster (3.4%)". Replaces the detail screen's previous
+    // separate percent-only row.
+    static function combineDeltaAndPercent(deltaText as String, percentText as String) as String {
+        return deltaText + " (" + percentText + ")";
+    }
+
 }

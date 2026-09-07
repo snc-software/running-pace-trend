@@ -30,7 +30,17 @@ class running_pace_trendApp extends Application.AppBase {
         // on-device history is not retried on every subsequent app open —
         // the daily background job above remains responsible for eventually
         // populating it, exactly as it does today.
-        if (Application.Storage.getValue("runningPaceInitialSyncAttempted") != true) {
+        //
+        // Also re-runs (regardless of that flag) whenever the trend window
+        // boundary keys are missing (#37): an install upgraded from a
+        // version predating those keys already has
+        // runningPaceInitialSyncAttempted = true from its original install,
+        // so without this check they'd stay unset until the next ~24h
+        // background tick - and running-pace-trendView.mc's unconditional
+        // `as Number` reads of them crash on null in the meantime.
+        var needsSync = Application.Storage.getValue("runningPaceInitialSyncAttempted") != true;
+        var missingTrendWindowBoundaries = Application.Storage.getValue("runningPaceTrendCurrentWindowStartEpoch") == null;
+        if (needsSync || missingTrendWindowBoundaries) {
             RunningPaceRefresh.run();
             Application.Storage.setValue("runningPaceInitialSyncAttempted", true);
         }

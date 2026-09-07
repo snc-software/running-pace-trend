@@ -38,6 +38,9 @@ class RunningPaceRefresh {
             Application.Storage.setValue("runningPaceTrendCurrentSecondsPerKm", trendResult["runningPaceTrendCurrentSecondsPerKm"] as Number?);
             Application.Storage.setValue("runningPaceTrendPreviousSecondsPerKm", trendResult["runningPaceTrendPreviousSecondsPerKm"] as Number?);
             Application.Storage.setValue("runningPaceTrendPercentChangeTenths", trendResult["runningPaceTrendPercentChangeTenths"] as Number?);
+            Application.Storage.setValue("runningPaceTrendPreviousWindowStartEpoch", trendResult["runningPaceTrendPreviousWindowStartEpoch"] as Number);
+            Application.Storage.setValue("runningPaceTrendCurrentWindowStartEpoch", trendResult["runningPaceTrendCurrentWindowStartEpoch"] as Number);
+            Application.Storage.setValue("runningPaceTrendCurrentWindowEndEpoch", trendResult["runningPaceTrendCurrentWindowEndEpoch"] as Number);
 
             if (result["runningPaceHasSufficientData"] as Boolean) {
                 var existingSnapshots = Application.Storage.getValue("runningPaceTrendSnapshots") as Array<Dictionary>?;
