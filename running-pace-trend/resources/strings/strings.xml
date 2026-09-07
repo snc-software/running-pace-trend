@@ -22,5 +22,6 @@
     <string id="RunningTrendGraphTitle">PACE TREND</string>
     <string id="RunningTrendGraphInsufficientData">Not enough runs yet</string>
     <string id="RunningTrendGraphInsufficientHistory">Not enough history yet</string>
-    <string id="RunningTrendGraphDaySpanUnit">days</string>
+    <string id="RunningTrendGraphDaysAgoSuffix">d ago</string>
+    <string id="RunningTrendGraphNowLabel">Now</string>
 </strings>

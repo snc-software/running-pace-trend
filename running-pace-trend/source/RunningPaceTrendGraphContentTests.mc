@@ -130,3 +130,81 @@ function reportsDaySpanAcrossTheFullSnapshotRange(logger as Logger) as Boolean {
     Test.assertEqualMessage(graphData["daySpanDays"], 10, "the day span must cover the full range from the oldest to the newest snapshot");
     return true;
 }
+
+(:test)
+function doesNotDownsampleWhenSnapshotsFitAvailableWidth(logger as Logger) as Boolean {
+    var baseDate = 259200000;
+    var snapshots = [] as Array<Dictionary>;
+    for (var i = 0; i < 10; i++) {
+        snapshots.add({ "date" => baseDate + (i * 86400), "secondsPerKm" => 400 - i });
+    }
+
+    // plotWidth 100 / MIN_PIXEL_SPACING_PER_POINT 4 = 25 available points, well
+    // above the 10 snapshots supplied, so today's 1:1 mapping must be unchanged.
+    var graphData = RunningPaceTrendGraphContent.buildGraphData(snapshots, 0, 0, 100, 100);
+    var points = graphData["points"] as Array<Dictionary>;
+
+    Test.assertEqualMessage(points.size(), 10, "a snapshot count within the available pixel width must not be downsampled");
+    return true;
+}
+
+(:test)
+function downsamplesWhenSnapshotCountExceedsAvailablePixelWidth(logger as Logger) as Boolean {
+    var baseDate = 259200000;
+    var snapshots = [] as Array<Dictionary>;
+    for (var i = 0; i < 100; i++) {
+        snapshots.add({ "date" => baseDate + (i * 86400), "secondsPerKm" => 400 - i });
+    }
+
+    // plotWidth 40 / MIN_PIXEL_SPACING_PER_POINT 4 = 10 available points.
+    var plotLeft = 5;
+    var plotWidth = 40;
+    var graphData = RunningPaceTrendGraphContent.buildGraphData(snapshots, plotLeft, 0, plotWidth, 100);
+    var points = graphData["points"] as Array<Dictionary>;
+
+    Test.assertEqualMessage(points.size(), 10, "a snapshot count exceeding the available pixel width must be downsampled to fit it");
+    Test.assertEqualMessage(points[0]["x"], plotLeft, "the oldest displayed point must still map to the plot's left edge after downsampling");
+    Test.assertEqualMessage(points[points.size() - 1]["x"], plotLeft + plotWidth, "the newest displayed point must still map to the plot's right edge after downsampling");
+    return true;
+}
+
+(:test)
+function reportsDaySpanFromFullHistoryEvenWhenPointsAreDownsampled(logger as Logger) as Boolean {
+    var baseDate = 259200000;
+    var snapshots = [] as Array<Dictionary>;
+    for (var i = 0; i < 100; i++) {
+        snapshots.add({ "date" => baseDate + (i * 86400), "secondsPerKm" => 400 - i });
+    }
+
+    var graphData = RunningPaceTrendGraphContent.buildGraphData(snapshots, 0, 0, 40, 100);
+
+    Test.assertEqualMessage(graphData["daySpanDays"], 99, "the day span must reflect the full original history, not the downsampled bucket count");
+    return true;
+}
+
+(:test)
+function clampsExtremeOutlierSoNormalVariationRemainsVisible(logger as Logger) as Boolean {
+    var baseDate = 259200000;
+    var snapshots = [] as Array<Dictionary>;
+
+    // 19 snapshots with a small, genuine spread (390-408s/km).
+    for (var i = 0; i < 19; i++) {
+        snapshots.add({ "date" => baseDate + (i * 86400), "secondsPerKm" => 390 + i });
+    }
+    // One extreme outlier, far faster than anything in the normal cluster.
+    snapshots.add({ "date" => baseDate + (19 * 86400), "secondsPerKm" => 100 });
+
+    // plotWidth large enough that all 20 points are plotted (no downsampling).
+    var graphData = RunningPaceTrendGraphContent.buildGraphData(snapshots, 0, 0, 400, 100);
+    var points = graphData["points"] as Array<Dictionary>;
+
+    Test.assertMessage((graphData["minSecondsPerKm"] as Number) > 300, "the reported fastest bound must be clamped away from the literal outlier value");
+
+    var outlierPoint = points[points.size() - 1] as Dictionary;
+    Test.assertEqualMessage(outlierPoint["y"], 0, "a snapshot outside the clamped bound must be pinned to the plot's top edge");
+
+    var normalClusterFirst = points[0] as Dictionary;
+    var normalClusterLast = points[points.size() - 2] as Dictionary;
+    Test.assertMessage((normalClusterFirst["y"] as Number) < (normalClusterLast["y"] as Number), "normal variation across the cluster must remain visible instead of being flattened by the outlier");
+    return true;
+}
