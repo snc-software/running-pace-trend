@@ -20,19 +20,21 @@ class RunningPaceTrendColor {
         return Graphics.COLOR_WHITE;
     }
 
-    // A lighter tint of forDirection()'s color, for the graph screen's
-    // area-under-the-line fill (#29 redesign) - full alpha, not a
+    // A vivid, saturated tint of forDirection()'s color, for the graph
+    // screen's area-under-the-line fill (#29 redesign) - full alpha, not a
     // transparency blend, so it renders consistently regardless of whether
-    // a device supports alpha compositing. Falls back to light gray,
-    // matching forDirection()'s own white (not green/red/blue) fallback for
-    // "no trend data yet".
+    // a device supports alpha compositing. Deliberately punchy/"neon" rather
+    // than pastel (#29 feedback round 3, point 7: the original pale tints
+    // read as washed-out next to the VO2max reference's glowing fill).
+    // Falls back to light gray, matching forDirection()'s own white (not
+    // green/red/blue) fallback for "no trend data yet".
     static function lightForDirection(direction as Number?) as Graphics.ColorType {
         if (direction == RUNNING_PACE_TREND_DIRECTION_FASTER) {
-            return Graphics.createColor(255, 170, 255, 170);
+            return Graphics.createColor(255, 40, 230, 90);
         } else if (direction == RUNNING_PACE_TREND_DIRECTION_SLOWER) {
-            return Graphics.createColor(255, 255, 170, 170);
+            return Graphics.createColor(255, 230, 45, 60);
         } else if (direction == RUNNING_PACE_TREND_DIRECTION_UNCHANGED) {
-            return Graphics.createColor(255, 170, 170, 255);
+            return Graphics.createColor(255, 60, 160, 230);
         }
         return Graphics.COLOR_LT_GRAY;
     }

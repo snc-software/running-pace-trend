@@ -22,5 +22,5 @@
     <string id="RunningTrendGraphInsufficientData">Not enough runs yet</string>
     <string id="RunningTrendGraphInsufficientHistory">Not enough history yet</string>
     <string id="RunningTrendGraphPeriodCaption">Last $1$ days</string>
-    <string id="RunningTrendGraphDeltaUnit">s/km</string>
+    <string id="RunningTrendGraphDeltaUnit">s /km</string>
 </strings>

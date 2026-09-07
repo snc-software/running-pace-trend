@@ -76,11 +76,13 @@ class RunningPaceTrendGraphView extends WatchUi.View {
 
         var paceUnit = WatchUi.loadResource(Rez.Strings.RunningTrendDetailUnit) as String;
 
-        // Current-pace row (#29 redesign, feedback round 2): the number
-        // itself stays in the system's normal white text color (not trend
-        // colored) and at a more modest FONT_NUMBER_MILD size - FONT_NUMBER_
-        // MEDIUM measured too wide once the "/km" unit was appended,
-        // overflowing past the visible circular area. Skipped (not blanked
+        // Current-pace row (#29 redesign, feedback round 3): FONT_LARGE - a
+        // regular system font, not a numeric font - both to read slightly
+        // smaller (point 3) and to sit further from the title above it
+        // (point 1); FONT_NUMBER_MILD (used in the previous pass) was tall
+        // enough to crowd "PACE TREND" directly above it. Digits/colon
+        // render fine in any system font, so there's no glyph-coverage risk
+        // here the way there is with the arrow below. Skipped (not blanked
         // with a fallback message) when there isn't yet a current pace to
         // show - a rare edge case in practice, since the graph itself
         // already requires RUNNING_PACE_TREND_GRAPH_STATE_READY (>= 2
@@ -88,28 +90,42 @@ class RunningPaceTrendGraphView extends WatchUi.View {
         // populates both the current pace and the snapshot history together.
         var hasSufficientData = Application.Storage.getValue("runningPaceHasSufficientData") as Boolean?;
         var currentSecondsPerKm = Application.Storage.getValue("runningPaceSecondsPerKm") as Number?;
-        var currentPaceY = height * 0.20;
-        var deltaRowY = height * 0.32;
+        var currentPaceY = height * 0.24;
+        var deltaRowY = height * 0.35;
         if (hasSufficientData == true && currentSecondsPerKm != null) {
             var numberText = RunningPaceFormatter.format(currentSecondsPerKm);
+            var numberFont = Graphics.FONT_LARGE;
 
-            var numberWidth = dc.getTextWidthInPixels(numberText, Graphics.FONT_NUMBER_MILD);
+            var numberWidth = dc.getTextWidthInPixels(numberText, numberFont);
             var unitWidth = dc.getTextWidthInPixels(paceUnit, Graphics.FONT_XTINY);
             var paceGroupGap = 2;
             var paceGroupLeft = centerX - ((numberWidth + paceGroupGap + unitWidth) / 2);
 
-            dc.drawText(paceGroupLeft, currentPaceY, Graphics.FONT_NUMBER_MILD, numberText, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
-            dc.drawText(paceGroupLeft + numberWidth + paceGroupGap, currentPaceY, Graphics.FONT_XTINY, paceUnit, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+            dc.drawText(paceGroupLeft, currentPaceY, numberFont, numberText, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
 
-            // Arrow + delta row below the pace (#29 redesign, feedback round
-            // 2), e.g. "→ 0s/km" / "↑ 11s/km" - only the arrow is trend
-            // colored, matching the request that the number/delta text stay
-            // in the system's normal text color and only the arrow itself
-            // carry the green/red/blue signal. FONT_XTINY is used here
-            // (rather than FONT_MEDIUM, tried in the previous pass) because
-            // it's the font size already proven in this codebase to render
-            // the arrow glyphs correctly (RunningPaceGlanceView) - a larger
-            // font substituted a missing-glyph placeholder for the arrow.
+            // Unit anchored to the bottom-left corner of the pace value
+            // (feedback round 3, point 2), rather than sharing the number's
+            // VCENTER - centering both on the same y made "/km" float at
+            // mid-digit-height instead of sitting on the number's own
+            // baseline. Connect IQ has no TEXT_JUSTIFY_BOTTOM, so the bottom
+            // edge is computed manually: y defaults to the text's top when
+            // no vertical justify flag is given, so subtracting the unit's
+            // own height positions that top such that its bottom lands
+            // exactly on the number's bottom edge.
+            var numberHeight = dc.getTextDimensions(numberText, numberFont)[1];
+            var numberBottomY = currentPaceY + (numberHeight / 2);
+            var unitHeight = dc.getTextDimensions(paceUnit, Graphics.FONT_XTINY)[1];
+            dc.drawText(paceGroupLeft + numberWidth + paceGroupGap, numberBottomY - unitHeight, Graphics.FONT_XTINY, paceUnit, Graphics.TEXT_JUSTIFY_LEFT);
+
+            // Arrow + delta row below the pace (#29 redesign), e.g.
+            // "-> 0s /km" / "^ 11s /km" - only the arrow is trend colored,
+            // matching the request that the number/delta text stay in the
+            // system's normal text color and only the arrow itself carry the
+            // green/red/blue signal. The arrow glyph is plain ASCII, not a
+            // Unicode arrow (feedback round 3, point 4) - the Unicode arrow
+            // rendered as a missing-glyph placeholder on-device even at
+            // FONT_XTINY, so RunningPaceTrendFormatter.arrowFor() no longer
+            // uses one anywhere.
             var deltaSecondsPerKm = Application.Storage.getValue("runningPaceTrendDeltaSecondsPerKm") as Number?;
             if (deltaSecondsPerKm != null) {
                 var arrowText = RunningPaceTrendFormatter.arrowFor(trendDirection);
@@ -130,16 +146,15 @@ class RunningPaceTrendGraphView extends WatchUi.View {
 
         // Plot area sits below the current-pace/delta rows, sized to leave
         // room for those above and the period caption below (#29 redesign).
-        // plotWidth is narrower than the original single-purpose layout's
-        // (feedback round 2, point 4): the Y-axis pace labels sit to the
-        // right of the plot at paceLabelRightEdge below, and the previous
-        // wider plot left too little horizontal gap before that edge, so an
-        // 8-character label like "19:59/km" overlapped the plotted line/
-        // fill instead of sitting clearly beside it.
-        var plotLeft = (width * 0.14).toNumber();
-        var plotTop = (height * 0.44).toNumber();
-        var plotWidth = (width * 0.46).toNumber();
-        var plotHeight = (height * 0.26).toNumber();
+        // Full width (feedback round 3, point 8), now that the Y-axis pace
+        // labels have moved above/below the plot instead of sitting to its
+        // right - plotLeft clears the page-indicator dots on the left edge,
+        // and the right edge stays inside the same round-bezel-safe margin
+        // used elsewhere on this screen.
+        var plotLeft = (width * 0.16).toNumber();
+        var plotTop = (height * 0.50).toNumber();
+        var plotWidth = (width * 0.70).toNumber();
+        var plotHeight = (height * 0.22).toNumber();
         var plotBaselineY = plotTop + plotHeight;
 
         var graphData = RunningPaceTrendGraphContent.buildGraphData(snapshots as Array<Dictionary>, plotLeft, plotTop, plotWidth, plotHeight);
@@ -168,28 +183,36 @@ class RunningPaceTrendGraphView extends WatchUi.View {
         dc.setColor(lightTrendColor, lightTrendColor);
         dc.fillPolygon(areaPoints);
 
+        // Bolder trend line (feedback round 3, point 6) - a wider pen makes
+        // it read clearly against the now-more-saturated area fill beneath
+        // it. Reset to the default pen width immediately after so it
+        // doesn't affect anything drawn later.
         dc.setColor(trendColor, Graphics.COLOR_TRANSPARENT);
+        dc.setPenWidth(3);
         for (var i = 0; i < points.size() - 1; i++) {
             var from = points[i] as Dictionary;
             var to = points[i + 1] as Dictionary;
             dc.drawLine(from["x"] as Number, from["y"] as Number, to["x"] as Number, to["y"] as Number);
         }
+        dc.setPenWidth(1);
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
 
-        // Safe right edge for the Y-axis pace labels (#29 fix for the
-        // round-bezel clipping seen in practice, same class of bug as #28):
-        // TEXT_JUSTIFY_RIGHT anchors a label's right edge here and grows it
-        // leftward, so its length can no longer push it past the visible
-        // circular area regardless of how wide the formatted pace text is.
-        // Combined with the narrower plotWidth above, this also keeps the
-        // label clear of the plot itself rather than overlapping it.
-        var paceLabelRightEdge = (width * 0.88).toNumber();
+        // Y-axis pace labels now sit just above and below the plot itself
+        // (feedback round 3, point 8), centered over its full width, rather
+        // than off to its right - the plot no longer leaves a side margin
+        // for them now that it spans the full width. Connect IQ has no
+        // TEXT_JUSTIFY_TOP/BOTTOM: y defaults to the text's top with no
+        // vertical flag, so the fastest label's y is pulled up by its own
+        // height to land its bottom edge just above the top gridline.
+        var plotCenterX = plotLeft + (plotWidth / 2);
+        var labelGap = 2;
 
         var fastestText = RunningPaceFormatter.format(graphData["minSecondsPerKm"] as Number) + paceUnit;
-        dc.drawText(paceLabelRightEdge, plotTop, Graphics.FONT_XTINY, fastestText, Graphics.TEXT_JUSTIFY_RIGHT | Graphics.TEXT_JUSTIFY_VCENTER);
+        var fastestTextHeight = dc.getTextDimensions(fastestText, Graphics.FONT_XTINY)[1];
+        dc.drawText(plotCenterX, plotTop - labelGap - fastestTextHeight, Graphics.FONT_XTINY, fastestText, Graphics.TEXT_JUSTIFY_CENTER);
 
         var slowestText = RunningPaceFormatter.format(graphData["maxSecondsPerKm"] as Number) + paceUnit;
-        dc.drawText(paceLabelRightEdge, plotBaselineY, Graphics.FONT_XTINY, slowestText, Graphics.TEXT_JUSTIFY_RIGHT | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(plotCenterX, plotBaselineY + labelGap, Graphics.FONT_XTINY, slowestText, Graphics.TEXT_JUSTIFY_CENTER);
 
         // Single centered period caption (#29 redesign) replacing the
         // previous two corner labels, e.g. "Last 60 days" - built from
