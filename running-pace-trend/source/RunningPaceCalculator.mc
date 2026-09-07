@@ -53,6 +53,9 @@ class RunningPaceCalculator {
             if (distanceMeters <= 0) {
                 continue;
             }
+            if (durationSeconds <= 0) {
+                continue;
+            }
 
             var startMoment = new Time.Moment(startTimeEpoch);
             if (startMoment.lessThan(windowStart)) {
