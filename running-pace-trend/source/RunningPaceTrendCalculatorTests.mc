@@ -16,6 +16,7 @@ function identifiesFasterTrendWhenCurrentPaceIsBetterThanPrevious(logger as Logg
     Test.assertEqualMessage(result["runningPaceTrendHasSufficientData"], true, "both periods have qualifying runs");
     Test.assertEqualMessage(result["runningPaceTrendDirection"], RUNNING_PACE_TREND_DIRECTION_FASTER, "300 s/km current vs 360 s/km previous is faster");
     Test.assertEqualMessage(result["runningPaceTrendDeltaSecondsPerKm"], 60, "delta must be the absolute difference regardless of direction");
+    Test.assertEqualMessage(result["runningPaceTrendPercentChangeTenths"], 167, "(60*1000+180)/360 rounds to 167 tenths of a percent");
     return true;
 }
 
@@ -32,6 +33,7 @@ function identifiesSlowerTrendWhenCurrentPaceIsWorseThanPrevious(logger as Logge
     Test.assertEqualMessage(result["runningPaceTrendHasSufficientData"], true, "both periods have qualifying runs");
     Test.assertEqualMessage(result["runningPaceTrendDirection"], RUNNING_PACE_TREND_DIRECTION_SLOWER, "360 s/km current vs 300 s/km previous is slower");
     Test.assertEqualMessage(result["runningPaceTrendDeltaSecondsPerKm"], 60, "delta must be the absolute difference regardless of direction");
+    Test.assertEqualMessage(result["runningPaceTrendPercentChangeTenths"], 200, "(60*1000+150)/300 rounds to 200 tenths of a percent");
     return true;
 }
 
@@ -48,6 +50,7 @@ function identifiesUnchangedTrendWhenPacesAreEqual(logger as Logger) as Boolean 
     Test.assertEqualMessage(result["runningPaceTrendHasSufficientData"], true, "both periods have qualifying runs");
     Test.assertEqualMessage(result["runningPaceTrendDirection"], RUNNING_PACE_TREND_DIRECTION_UNCHANGED, "equal weighted pace in both periods is unchanged");
     Test.assertEqualMessage(result["runningPaceTrendDeltaSecondsPerKm"], 0, "equal weighted pace in both periods must report a zero delta");
+    Test.assertEqualMessage(result["runningPaceTrendPercentChangeTenths"], 0, "equal weighted pace in both periods must report a zero percent change");
     return true;
 }
 
@@ -65,6 +68,7 @@ function reportsInsufficientDataWhenCurrentPeriodHasNoQualifyingRuns(logger as L
     Test.assertMessage(result["runningPaceTrendPreviousSecondsPerKm"] != null, "previous pace should still be populated");
     Test.assertMessage(result["runningPaceTrendDirection"] == null, "direction must be null when data is insufficient");
     Test.assertMessage(result["runningPaceTrendDeltaSecondsPerKm"] == null, "delta must be null when data is insufficient");
+    Test.assertMessage(result["runningPaceTrendPercentChangeTenths"] == null, "percent change must be null when data is insufficient");
     return true;
 }
 
@@ -82,6 +86,7 @@ function reportsInsufficientDataWhenPreviousPeriodHasNoQualifyingRuns(logger as 
     Test.assertMessage(result["runningPaceTrendCurrentSecondsPerKm"] != null, "current pace should still be populated");
     Test.assertMessage(result["runningPaceTrendDirection"] == null, "direction must be null when data is insufficient");
     Test.assertMessage(result["runningPaceTrendDeltaSecondsPerKm"] == null, "delta must be null when data is insufficient");
+    Test.assertMessage(result["runningPaceTrendPercentChangeTenths"] == null, "percent change must be null when data is insufficient");
     return true;
 }
 
@@ -97,6 +102,22 @@ function reportsInsufficientDataWhenNeitherPeriodHasQualifyingRuns(logger as Log
     Test.assertMessage(result["runningPaceTrendPreviousSecondsPerKm"] == null, "previous pace must be null");
     Test.assertMessage(result["runningPaceTrendDirection"] == null, "direction must be null");
     Test.assertMessage(result["runningPaceTrendDeltaSecondsPerKm"] == null, "delta must be null");
+    Test.assertMessage(result["runningPaceTrendPercentChangeTenths"] == null, "percent change must be null");
+    return true;
+}
+
+(:test)
+function calculatesPercentChangeMatchingIssueExample(logger as Logger) as Boolean {
+    var now = new Time.Moment(100000000);
+    var records = [
+        new RunningActivityRecord(1000, 462, 100000000, Activity.SPORT_RUNNING),
+        new RunningActivityRecord(1000, 473, 100000000 - (40 * 86400), Activity.SPORT_RUNNING)
+    ] as Array<RunningActivityRecord>;
+
+    var result = RunningPaceTrendCalculator.compare(records, now);
+
+    Test.assertEqualMessage(result["runningPaceTrendDeltaSecondsPerKm"], 11, "462 vs 473 s/km delta must be 11");
+    Test.assertEqualMessage(result["runningPaceTrendPercentChangeTenths"], 23, "462 vs 473 s/km must match the issue's worked example of 2.3%");
     return true;
 }
 

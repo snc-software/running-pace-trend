@@ -21,4 +21,13 @@ class RunningPaceTrendFormatter {
         return arrow + " " + deltaSecondsPerKm.toString();
     }
 
+    // Formats integer tenths-of-a-percent as "N.N%", e.g. 23 -> "2.3%". No
+    // sign/direction — the delta line above it already conveys faster/slower.
+    static function formatPercent(percentChangeTenths as Number) as String {
+        var wholePercent = percentChangeTenths / 10;
+        var remainderTenths = percentChangeTenths % 10;
+
+        return wholePercent.toString() + "." + remainderTenths.toString() + "%";
+    }
+
 }

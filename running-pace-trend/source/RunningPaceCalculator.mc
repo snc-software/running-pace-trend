@@ -21,7 +21,9 @@ class RunningPaceCalculator {
         return {
             "runningPaceHasSufficientData" => result["runningPaceHasSufficientData"],
             "runningPaceSecondsPerKm" => result["runningPaceSecondsPerKm"],
-            "runningPaceLastComputedAt" => now.value()
+            "runningPaceLastComputedAt" => now.value(),
+            "runningPaceTotalDistanceMeters" => result["runningPaceTotalDistanceMeters"],
+            "runningPaceQualifyingActivityCount" => result["runningPaceQualifyingActivityCount"]
         };
     }
 
@@ -32,6 +34,7 @@ class RunningPaceCalculator {
     static function calculateForWindow(records as Array<RunningActivityRecord>, windowStart as Time.Moment, windowEndExclusive as Time.Moment?) as Dictionary {
         var totalDistanceMeters = 0;
         var totalDurationSeconds = 0;
+        var qualifyingActivityCount = 0;
 
         for (var i = 0; i < records.size(); i++) {
             var record = records[i];
@@ -61,12 +64,15 @@ class RunningPaceCalculator {
 
             totalDistanceMeters += distanceMeters;
             totalDurationSeconds += durationSeconds;
+            qualifyingActivityCount += 1;
         }
 
         if (totalDistanceMeters <= 0) {
             return {
                 "runningPaceHasSufficientData" => false,
-                "runningPaceSecondsPerKm" => null
+                "runningPaceSecondsPerKm" => null,
+                "runningPaceTotalDistanceMeters" => totalDistanceMeters,
+                "runningPaceQualifyingActivityCount" => qualifyingActivityCount
             };
         }
 
@@ -76,7 +82,9 @@ class RunningPaceCalculator {
 
         return {
             "runningPaceHasSufficientData" => true,
-            "runningPaceSecondsPerKm" => secondsPerKm
+            "runningPaceSecondsPerKm" => secondsPerKm,
+            "runningPaceTotalDistanceMeters" => totalDistanceMeters,
+            "runningPaceQualifyingActivityCount" => qualifyingActivityCount
         };
     }
 
