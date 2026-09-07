@@ -6,4 +6,16 @@
     <string id="RunningPaceTrendFasterSuffix" scope="glance">sec/km faster</string>
     <string id="RunningPaceTrendSlowerSuffix" scope="glance">sec/km slower</string>
     <string id="RunningPaceTrendUnchangedSuffix" scope="glance">sec/km</string>
+    <string id="RunningTrendDetailTitle">RUNNING TREND</string>
+    <string id="RunningTrendDetailCurrentLabel">Current:</string>
+    <string id="RunningTrendDetailPreviousLabel">Previous:</string>
+    <string id="RunningTrendDetailUnit">/km</string>
+    <string id="RunningTrendDetailDistanceLabel">Distance:</string>
+    <string id="RunningTrendDetailDistanceUnit">km</string>
+    <string id="RunningTrendDetailRunsLabel">Runs:</string>
+    <string id="RunningTrendDetailFasterSuffix">sec/km faster</string>
+    <string id="RunningTrendDetailSlowerSuffix">sec/km slower</string>
+    <string id="RunningTrendDetailUnchangedSuffix">sec/km</string>
+    <string id="RunningTrendDetailInsufficientData">Not enough runs yet</string>
+    <string id="RunningTrendDetailInsufficientHistory">Not enough history yet</string>
 </strings>

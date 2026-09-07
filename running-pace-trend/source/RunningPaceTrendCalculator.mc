@@ -30,6 +30,7 @@ class RunningPaceTrendCalculator {
 
         var direction = null;
         var deltaSecondsPerKm = null;
+        var percentChangeTenths = null;
         if (hasSufficientData) {
             var currentSecondsPerKm = current["runningPaceSecondsPerKm"] as Number;
             var previousSecondsPerKm = previous["runningPaceSecondsPerKm"] as Number;
@@ -43,6 +44,10 @@ class RunningPaceTrendCalculator {
             }
 
             deltaSecondsPerKm = (currentSecondsPerKm - previousSecondsPerKm).abs();
+
+            // Integer rounding to the nearest tenth of a percent, avoiding Float
+            // math per coding-standards.md's Memory and Performance section.
+            percentChangeTenths = (deltaSecondsPerKm * 1000 + previousSecondsPerKm / 2) / previousSecondsPerKm;
         }
 
         return {
@@ -50,7 +55,8 @@ class RunningPaceTrendCalculator {
             "runningPaceTrendCurrentSecondsPerKm" => current["runningPaceSecondsPerKm"],
             "runningPaceTrendPreviousSecondsPerKm" => previous["runningPaceSecondsPerKm"],
             "runningPaceTrendDirection" => direction,
-            "runningPaceTrendDeltaSecondsPerKm" => deltaSecondsPerKm
+            "runningPaceTrendDeltaSecondsPerKm" => deltaSecondsPerKm,
+            "runningPaceTrendPercentChangeTenths" => percentChangeTenths
         };
     }
 
