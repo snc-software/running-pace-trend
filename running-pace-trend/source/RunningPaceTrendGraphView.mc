@@ -70,9 +70,12 @@ class RunningPaceTrendGraphView extends WatchUi.View {
         var slowestText = RunningPaceFormatter.format(graphData["maxSecondsPerKm"] as Number) + paceUnit;
         dc.drawText(plotLeft + plotWidth + 4, plotTop + plotHeight, Graphics.FONT_XTINY, slowestText, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
 
-        var daySpanUnit = WatchUi.loadResource(Rez.Strings.RunningTrendGraphDaySpanUnit) as String;
-        var daySpanText = (graphData["daySpanDays"] as Number).toString() + " " + daySpanUnit;
-        dc.drawText(centerX, height * 0.90, Graphics.FONT_XTINY, daySpanText, Graphics.TEXT_JUSTIFY_CENTER);
+        var daysAgoSuffix = WatchUi.loadResource(Rez.Strings.RunningTrendGraphDaysAgoSuffix) as String;
+        var oldestLabel = (graphData["daySpanDays"] as Number).toString() + daysAgoSuffix;
+        dc.drawText(plotLeft, height * 0.90, Graphics.FONT_XTINY, oldestLabel, Graphics.TEXT_JUSTIFY_LEFT);
+
+        var newestLabel = WatchUi.loadResource(Rez.Strings.RunningTrendGraphNowLabel) as String;
+        dc.drawText(plotLeft + plotWidth, height * 0.90, Graphics.FONT_XTINY, newestLabel, Graphics.TEXT_JUSTIFY_RIGHT);
     }
 
 }
