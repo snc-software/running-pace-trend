@@ -28,19 +28,19 @@ function returnsWhiteWhenDirectionIsNull(logger as Logger) as Boolean {
 
 (:test)
 function returnsLightGreenForFasterTrend(logger as Logger) as Boolean {
-    Test.assertEqualMessage(RunningPaceTrendColor.lightForDirection(RUNNING_PACE_TREND_DIRECTION_FASTER), Graphics.createColor(255, 40, 230, 90), "an improving (faster) trend's area fill must be a vivid green tint");
+    Test.assertEqualMessage(RunningPaceTrendColor.lightForDirection(RUNNING_PACE_TREND_DIRECTION_FASTER), Graphics.createColor(255, 14, 81, 32), "an improving (faster) trend's area fill must be a subtle green tint");
     return true;
 }
 
 (:test)
 function returnsLightRedForSlowerTrend(logger as Logger) as Boolean {
-    Test.assertEqualMessage(RunningPaceTrendColor.lightForDirection(RUNNING_PACE_TREND_DIRECTION_SLOWER), Graphics.createColor(255, 230, 45, 60), "a declining (slower) trend's area fill must be a vivid red tint");
+    Test.assertEqualMessage(RunningPaceTrendColor.lightForDirection(RUNNING_PACE_TREND_DIRECTION_SLOWER), Graphics.createColor(255, 81, 16, 21), "a declining (slower) trend's area fill must be a subtle red tint");
     return true;
 }
 
 (:test)
 function returnsLightBlueForUnchangedTrend(logger as Logger) as Boolean {
-    Test.assertEqualMessage(RunningPaceTrendColor.lightForDirection(RUNNING_PACE_TREND_DIRECTION_UNCHANGED), Graphics.createColor(255, 60, 160, 230), "a stable (unchanged) trend's area fill must be a vivid blue tint");
+    Test.assertEqualMessage(RunningPaceTrendColor.lightForDirection(RUNNING_PACE_TREND_DIRECTION_UNCHANGED), Graphics.createColor(255, 21, 56, 81), "a stable (unchanged) trend's area fill must be a subtle blue tint");
     return true;
 }
 

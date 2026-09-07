@@ -103,44 +103,72 @@ class RunningPaceTrendGraphView extends WatchUi.View {
 
             dc.drawText(paceGroupLeft, currentPaceY, numberFont, numberText, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
 
-            // Unit anchored to the bottom-left corner of the pace value
-            // (feedback round 3, point 2), rather than sharing the number's
-            // VCENTER - centering both on the same y made "/km" float at
-            // mid-digit-height instead of sitting on the number's own
-            // baseline. Connect IQ has no TEXT_JUSTIFY_BOTTOM, so the bottom
-            // edge is computed manually: y defaults to the text's top when
-            // no vertical justify flag is given, so subtracting the unit's
-            // own height positions that top such that its bottom lands
-            // exactly on the number's bottom edge.
-            var numberHeight = dc.getTextDimensions(numberText, numberFont)[1];
-            var numberBottomY = currentPaceY + (numberHeight / 2);
-            var unitHeight = dc.getTextDimensions(paceUnit, Graphics.FONT_XTINY)[1];
-            dc.drawText(paceGroupLeft + numberWidth + paceGroupGap, numberBottomY - unitHeight, Graphics.FONT_XTINY, paceUnit, Graphics.TEXT_JUSTIFY_LEFT);
+            // Unit's baseline aligned to the number's own baseline (feedback
+            // round 4, point 1) - a unit should read like it's sitting on
+            // the same line as the value it qualifies, e.g. "5:11/km" in
+            // print. The previous pass aligned to the number's full
+            // bounding-box bottom instead, which sat visibly lower than the
+            // true baseline (the box reserves descender space digits never
+            // use), making "/km" look detached/misaligned. Font metrics
+            // (ascent/descent), not raw bounding-box height, are what let
+            // this be computed correctly: with the number VCENTER'd at
+            // currentPaceY, its box top is centerY - height/2, and its
+            // baseline sits "ascent" pixels below that top; the unit is then
+            // placed so its own baseline (ascent pixels below its top) lands
+            // on that same y.
+            var numberHeight = Graphics.getFontHeight(numberFont);
+            var numberAscent = Graphics.getFontAscent(numberFont);
+            var numberBaselineY = currentPaceY - (numberHeight / 2) + numberAscent;
+            var unitAscent = Graphics.getFontAscent(Graphics.FONT_XTINY);
+            dc.drawText(paceGroupLeft + numberWidth + paceGroupGap, numberBaselineY - unitAscent, Graphics.FONT_XTINY, paceUnit, Graphics.TEXT_JUSTIFY_LEFT);
 
-            // Arrow + delta row below the pace (#29 redesign), e.g.
-            // "-> 0s /km" / "^ 11s /km" - only the arrow is trend colored,
-            // matching the request that the number/delta text stay in the
-            // system's normal text color and only the arrow itself carry the
-            // green/red/blue signal. The arrow glyph is plain ASCII, not a
-            // Unicode arrow (feedback round 3, point 4) - the Unicode arrow
-            // rendered as a missing-glyph placeholder on-device even at
-            // FONT_XTINY, so RunningPaceTrendFormatter.arrowFor() no longer
-            // uses one anywhere.
+            // Arrow + delta row below the pace (#29 redesign). The arrow is
+            // now a solid triangle inside a trend-colored circular badge
+            // (feedback round 4, point 2), matching the VO2max reference's
+            // icon style, rather than a text glyph - a caret/ASCII character
+            // read as a plain typographic mark, not a real "arrow in a
+            // circle" indicator. Only the badge (and its icon) carry the
+            // trend color; the delta text itself stays the system's normal
+            // white.
             var deltaSecondsPerKm = Application.Storage.getValue("runningPaceTrendDeltaSecondsPerKm") as Number?;
             if (deltaSecondsPerKm != null) {
-                var arrowText = RunningPaceTrendFormatter.arrowFor(trendDirection);
                 var deltaUnit = WatchUi.loadResource(Rez.Strings.RunningTrendGraphDeltaUnit) as String;
                 var deltaText = deltaSecondsPerKm.toString() + deltaUnit;
 
-                var arrowWidth = dc.getTextWidthInPixels(arrowText, Graphics.FONT_XTINY);
+                var badgeRadius = (height * 0.035).toNumber();
+                var badgeDiameter = badgeRadius * 2;
                 var deltaWidth = dc.getTextWidthInPixels(deltaText, Graphics.FONT_XTINY);
                 var deltaGroupGap = 4;
-                var deltaGroupLeft = centerX - ((arrowWidth + deltaGroupGap + deltaWidth) / 2);
+                var deltaGroupLeft = centerX - ((badgeDiameter + deltaGroupGap + deltaWidth) / 2);
+                var badgeCenterX = deltaGroupLeft + badgeRadius;
 
                 dc.setColor(trendColor, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(deltaGroupLeft, deltaRowY, Graphics.FONT_XTINY, arrowText, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+                dc.fillCircle(badgeCenterX, deltaRowY, badgeRadius);
+
+                // The icon itself is drawn in black, which reads clearly
+                // against all three trend colors (green/red/blue) without
+                // needing a direction-specific icon color.
+                dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
+                var iconHalfWidth = badgeRadius * 0.5;
+                var iconHalfHeight = badgeRadius * 0.5;
+                if (trendDirection == RUNNING_PACE_TREND_DIRECTION_FASTER) {
+                    dc.fillPolygon([
+                        [badgeCenterX, deltaRowY - iconHalfHeight],
+                        [badgeCenterX - iconHalfWidth, deltaRowY + iconHalfHeight],
+                        [badgeCenterX + iconHalfWidth, deltaRowY + iconHalfHeight]
+                    ] as Array<Graphics.Point2D>);
+                } else if (trendDirection == RUNNING_PACE_TREND_DIRECTION_SLOWER) {
+                    dc.fillPolygon([
+                        [badgeCenterX, deltaRowY + iconHalfHeight],
+                        [badgeCenterX - iconHalfWidth, deltaRowY - iconHalfHeight],
+                        [badgeCenterX + iconHalfWidth, deltaRowY - iconHalfHeight]
+                    ] as Array<Graphics.Point2D>);
+                } else {
+                    dc.fillRectangle(badgeCenterX - iconHalfWidth, deltaRowY - 1, iconHalfWidth * 2, 2);
+                }
+
                 dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-                dc.drawText(deltaGroupLeft + arrowWidth + deltaGroupGap, deltaRowY, Graphics.FONT_XTINY, deltaText, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+                dc.drawText(badgeCenterX + badgeRadius + deltaGroupGap, deltaRowY, Graphics.FONT_XTINY, deltaText, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
             }
         }
 
