@@ -7,6 +7,12 @@ import Toybox.Lang;
 // for an improving (faster) trend, red for a declining (slower) trend, blue
 // for an unchanged/stable trend. Falls back to white when no trend direction
 // is available yet, matching the graph line's original default color.
+//
+// Annotated (:glance) (#27) since RunningPaceGlanceView now also calls
+// forDirection() for its trend highlight bar - without this annotation the
+// glance's isolated compilation unit doesn't include this class, and the
+// call fails at runtime with "Illegal Access (Out of Bounds)".
+(:glance)
 class RunningPaceTrendColor {
 
     static function forDirection(direction as Number?) as Graphics.ColorType {
