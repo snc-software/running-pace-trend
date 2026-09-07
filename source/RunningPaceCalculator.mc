@@ -15,7 +15,7 @@ class RunningPaceCalculator {
     // "now" is injectable so tests can pin the rolling window instead of depending
     // on wall-clock time.
     static function calculate(records as Array<RunningActivityRecord>, now as Time.Moment) as Dictionary {
-        var windowStart = now.subtract(new Time.Duration(ROLLING_WINDOW_DAYS * SECONDS_PER_DAY)) as Time.Moment;
+        var windowStart = RunningPaceDayBoundary.startOfDay(now).subtract(new Time.Duration(ROLLING_WINDOW_DAYS * SECONDS_PER_DAY)) as Time.Moment;
         var result = calculateForWindow(records, windowStart, null);
 
         return {
