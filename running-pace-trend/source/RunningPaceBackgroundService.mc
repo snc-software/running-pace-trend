@@ -6,9 +6,11 @@ import Toybox.Time;
 
 // Runs outside the Glance's execution budget (glance-standards.md Data Refresh),
 // computing the weighted pace and caching it to Application.Storage for
-// RunningPaceGlanceView to read. running-pace-trendApp registers the recurring
-// temporal event with a Duration, which the platform repeats automatically, so
-// this delegate does not need to re-register itself on every firing.
+// RunningPaceGlanceView to read, and recording a historical snapshot via
+// RunningPaceTrendHistory for a future longer-term trend view (US-08).
+// running-pace-trendApp registers the recurring temporal event with a
+// Duration, which the platform repeats automatically, so this delegate does
+// not need to re-register itself on every firing.
 class RunningPaceBackgroundService extends System.ServiceDelegate {
 
     function initialize() {
@@ -35,6 +37,20 @@ class RunningPaceBackgroundService extends System.ServiceDelegate {
             Application.Storage.setValue("runningPaceTrendCurrentSecondsPerKm", trendResult["runningPaceTrendCurrentSecondsPerKm"] as Number?);
             Application.Storage.setValue("runningPaceTrendPreviousSecondsPerKm", trendResult["runningPaceTrendPreviousSecondsPerKm"] as Number?);
             Application.Storage.setValue("runningPaceTrendPercentChangeTenths", trendResult["runningPaceTrendPercentChangeTenths"] as Number?);
+
+            if (result["runningPaceHasSufficientData"] as Boolean) {
+                var existingSnapshots = Application.Storage.getValue("runningPaceTrendSnapshots") as Array<Dictionary>?;
+                if (existingSnapshots == null) {
+                    existingSnapshots = [] as Array<Dictionary>;
+                }
+
+                var updatedSnapshots = RunningPaceTrendHistory.recordSnapshot(
+                    existingSnapshots,
+                    now.value(),
+                    result["runningPaceSecondsPerKm"] as Number
+                );
+                Application.Storage.setValue("runningPaceTrendSnapshots", updatedSnapshots);
+            }
         } catch (exception instanceof Lang.Exception) {
             // Leave any previously computed Storage values in place rather than
             // overwrite good data with a transient read failure; the Glance keeps
