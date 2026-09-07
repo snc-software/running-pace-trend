@@ -13,17 +13,21 @@ import Toybox.Time;
 // not need to re-register itself on every firing.
 class RunningPaceBackgroundService extends System.ServiceDelegate {
 
+    private static const SECONDS_PER_DAY = 86400;
+
     function initialize() {
         System.ServiceDelegate.initialize();
     }
 
     function onTemporalEvent() as Void {
         try {
-            var reader = new RunningActivityHistoryReader();
-            var records = reader.readAll();
             var now = Time.now();
+            var windowStart = now.subtract(new Time.Duration(RunningPaceTrendCalculator.TOTAL_LOOKBACK_DAYS * SECONDS_PER_DAY)) as Time.Moment;
+
+            var reader = new RunningActivityHistoryReader();
+            var records = reader.readAll(windowStart);
             var result = RunningPaceCalculator.calculate(records, now);
-            var trendResult = RunningPaceTrendCalculator.compare(records, now);
+            var trendResult = RunningPaceTrendCalculator.compare(records, now, result);
 
             Application.Storage.setValue("runningPaceHasSufficientData", result["runningPaceHasSufficientData"] as Boolean);
             Application.Storage.setValue("runningPaceSecondsPerKm", result["runningPaceSecondsPerKm"] as Number?);
