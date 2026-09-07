@@ -138,7 +138,7 @@ class RunningPaceTrendGraphView extends WatchUi.View {
                 var badgeRadius = (height * 0.035).toNumber();
                 var badgeDiameter = badgeRadius * 2;
                 var deltaWidth = dc.getTextWidthInPixels(deltaText, Graphics.FONT_XTINY);
-                var deltaGroupGap = 4;
+                var deltaGroupGap = 10;
                 var deltaGroupLeft = centerX - ((badgeDiameter + deltaGroupGap + deltaWidth) / 2);
                 var badgeCenterX = deltaGroupLeft + badgeRadius;
 
@@ -235,11 +235,11 @@ class RunningPaceTrendGraphView extends WatchUi.View {
         var plotCenterX = plotLeft + (plotWidth / 2);
         var labelGap = 2;
 
-        var fastestText = RunningPaceFormatter.format(graphData["minSecondsPerKm"] as Number) + paceUnit;
+        var fastestText = RunningPaceFormatter.format(graphData["minSecondsPerKm"] as Number) + " " + paceUnit;
         var fastestTextHeight = dc.getTextDimensions(fastestText, Graphics.FONT_XTINY)[1];
         dc.drawText(plotCenterX, plotTop - labelGap - fastestTextHeight, Graphics.FONT_XTINY, fastestText, Graphics.TEXT_JUSTIFY_CENTER);
 
-        var slowestText = RunningPaceFormatter.format(graphData["maxSecondsPerKm"] as Number) + paceUnit;
+        var slowestText = RunningPaceFormatter.format(graphData["maxSecondsPerKm"] as Number) + " " + paceUnit;
         dc.drawText(plotCenterX, plotBaselineY + labelGap, Graphics.FONT_XTINY, slowestText, Graphics.TEXT_JUSTIFY_CENTER);
 
         // Single centered period caption (#29 redesign) replacing the

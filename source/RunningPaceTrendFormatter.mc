@@ -4,6 +4,7 @@ import Toybox.Lang;
 // GlanceView so it can be unit tested without a device (coding-standards.md
 // Testing section). Mirrors RunningPaceFormatter's split between raw display
 // logic (here) and the Rez-loaded qualifier wording owned by the View.
+(:glance)
 class RunningPaceTrendFormatter {
 
     // Formats the arrow + number portion only, e.g. (FASTER, 11) -> "^ 11".
