@@ -7,8 +7,6 @@
     <string id="RunningPaceTrendSlowerSuffix" scope="glance">sec/km slower</string>
     <string id="RunningPaceTrendUnchangedSuffix" scope="glance">sec/km</string>
     <string id="RunningTrendDetailTitle">RUNNING TREND</string>
-    <string id="RunningTrendDetailCurrentLabel">Current:</string>
-    <string id="RunningTrendDetailPreviousLabel">Previous:</string>
     <string id="RunningTrendDetailUnit">/km</string>
     <string id="RunningTrendDetailDistanceLabel">Distance:</string>
     <string id="RunningTrendDetailDistanceUnit">km</string>
