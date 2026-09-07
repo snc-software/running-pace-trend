@@ -147,15 +147,16 @@ function excludesRunsOlderThanSixtyDays(logger as Logger) as Boolean {
 (:test)
 function assignsBoundaryRunToCurrentPeriodNotPrevious(logger as Logger) as Boolean {
     var now = new Time.Moment(100000000);
-    var thirtyDaysInSeconds = 30 * 86400;
+    var todayStart = RunningPaceDayBoundary.startOfDay(now);
+    var currentWindowStart = todayStart.subtract(new Time.Duration(30 * 86400));
     var records = [
-        new RunningActivityRecord(5000, 1800, 100000000 - thirtyDaysInSeconds, Activity.SPORT_RUNNING)
+        new RunningActivityRecord(5000, 1800, currentWindowStart.value(), Activity.SPORT_RUNNING)
     ] as Array<RunningActivityRecord>;
 
     var currentResult = RunningPaceCalculator.calculate(records, now);
     var result = RunningPaceTrendCalculator.compare(records, now, currentResult);
 
-    Test.assertMessage(result["runningPaceTrendCurrentSecondsPerKm"] != null, "a run exactly at the current period's start boundary must count toward the current period");
+    Test.assertMessage(result["runningPaceTrendCurrentSecondsPerKm"] != null, "a run exactly at the current period's midnight-anchored start boundary must count toward the current period");
     Test.assertMessage(result["runningPaceTrendPreviousSecondsPerKm"] == null, "the same boundary run must not also be counted in the previous period");
     return true;
 }
@@ -163,15 +164,16 @@ function assignsBoundaryRunToCurrentPeriodNotPrevious(logger as Logger) as Boole
 (:test)
 function includesRunAtSixtyDayBoundaryInPreviousPeriod(logger as Logger) as Boolean {
     var now = new Time.Moment(100000000);
-    var sixtyDaysInSeconds = 60 * 86400;
+    var todayStart = RunningPaceDayBoundary.startOfDay(now);
+    var previousWindowStart = todayStart.subtract(new Time.Duration(60 * 86400));
     var records = [
-        new RunningActivityRecord(5000, 1800, 100000000 - sixtyDaysInSeconds, Activity.SPORT_RUNNING)
+        new RunningActivityRecord(5000, 1800, previousWindowStart.value(), Activity.SPORT_RUNNING)
     ] as Array<RunningActivityRecord>;
 
     var currentResult = RunningPaceCalculator.calculate(records, now);
     var result = RunningPaceTrendCalculator.compare(records, now, currentResult);
 
-    Test.assertMessage(result["runningPaceTrendPreviousSecondsPerKm"] != null, "a run exactly at the previous period's start boundary must count toward the previous period");
+    Test.assertMessage(result["runningPaceTrendPreviousSecondsPerKm"] != null, "a run exactly at the previous period's midnight-anchored start boundary must count toward the previous period");
     Test.assertMessage(result["runningPaceTrendCurrentSecondsPerKm"] == null, "the boundary run must not be counted in the current period");
     return true;
 }
@@ -179,15 +181,16 @@ function includesRunAtSixtyDayBoundaryInPreviousPeriod(logger as Logger) as Bool
 (:test)
 function excludesRunJustOutsideSixtyDayBoundary(logger as Logger) as Boolean {
     var now = new Time.Moment(100000000);
-    var sixtyDaysInSeconds = 60 * 86400;
+    var todayStart = RunningPaceDayBoundary.startOfDay(now);
+    var previousWindowStart = todayStart.subtract(new Time.Duration(60 * 86400));
     var records = [
-        new RunningActivityRecord(5000, 1800, 100000000 - sixtyDaysInSeconds - 1, Activity.SPORT_RUNNING)
+        new RunningActivityRecord(5000, 1800, previousWindowStart.value() - 1, Activity.SPORT_RUNNING)
     ] as Array<RunningActivityRecord>;
 
     var currentResult = RunningPaceCalculator.calculate(records, now);
     var result = RunningPaceTrendCalculator.compare(records, now, currentResult);
 
-    Test.assertEqualMessage(result["runningPaceTrendHasSufficientData"], false, "a run one second outside the 60-day boundary must not count in either period");
+    Test.assertEqualMessage(result["runningPaceTrendHasSufficientData"], false, "a run one second outside the midnight-anchored 60-day boundary must not count in either period");
     return true;
 }
 

@@ -56,9 +56,8 @@ function excludesNonRunningActivities(logger as Logger) as Boolean {
 (:test)
 function excludesActivitiesOutsideRollingThirtyDayWindow(logger as Logger) as Boolean {
     var now = new Time.Moment(100000000);
-    var thirtyDaysInSeconds = 30 * 86400;
     var records = [
-        new RunningActivityRecord(5000, 1800, 100000000 - thirtyDaysInSeconds - 1, Activity.SPORT_RUNNING)
+        new RunningActivityRecord(5000, 1800, 100000000 - (40 * 86400), Activity.SPORT_RUNNING)
     ] as Array<RunningActivityRecord>;
 
     var result = RunningPaceCalculator.calculate(records, now);
@@ -72,29 +71,31 @@ function excludesActivitiesOutsideRollingThirtyDayWindow(logger as Logger) as Bo
 (:test)
 function includesActivityAtThirtyDayBoundary(logger as Logger) as Boolean {
     var now = new Time.Moment(100000000);
-    var thirtyDaysInSeconds = 30 * 86400;
+    var todayStart = RunningPaceDayBoundary.startOfDay(now);
+    var windowStart = todayStart.subtract(new Time.Duration(30 * 86400));
     var records = [
-        new RunningActivityRecord(5000, 1800, 100000000 - thirtyDaysInSeconds, Activity.SPORT_RUNNING)
+        new RunningActivityRecord(5000, 1800, windowStart.value(), Activity.SPORT_RUNNING)
     ] as Array<RunningActivityRecord>;
 
     var result = RunningPaceCalculator.calculate(records, now);
 
-    Test.assertEqualMessage(result["runningPaceHasSufficientData"], true, "a run exactly at the 30-day boundary must count");
-    Test.assertEqualMessage(result["runningPaceQualifyingActivityCount"], 1, "a run exactly at the 30-day boundary must be counted");
+    Test.assertEqualMessage(result["runningPaceHasSufficientData"], true, "a run exactly at the midnight-anchored 30-day boundary must count");
+    Test.assertEqualMessage(result["runningPaceQualifyingActivityCount"], 1, "a run exactly at the midnight-anchored 30-day boundary must be counted");
     return true;
 }
 
 (:test)
 function excludesActivityJustOutsideThirtyDayBoundary(logger as Logger) as Boolean {
     var now = new Time.Moment(100000000);
-    var thirtyDaysInSeconds = 30 * 86400;
+    var todayStart = RunningPaceDayBoundary.startOfDay(now);
+    var windowStart = todayStart.subtract(new Time.Duration(30 * 86400));
     var records = [
-        new RunningActivityRecord(5000, 1800, 100000000 - thirtyDaysInSeconds - 1, Activity.SPORT_RUNNING)
+        new RunningActivityRecord(5000, 1800, windowStart.value() - 1, Activity.SPORT_RUNNING)
     ] as Array<RunningActivityRecord>;
 
     var result = RunningPaceCalculator.calculate(records, now);
 
-    Test.assertEqualMessage(result["runningPaceHasSufficientData"], false, "a run one second outside the 30-day boundary must not count");
+    Test.assertEqualMessage(result["runningPaceHasSufficientData"], false, "a run one second outside the midnight-anchored 30-day boundary must not count");
     Test.assertEqualMessage(result["runningPaceTotalDistanceMeters"], 0, "a run outside the boundary must not contribute to total distance");
     Test.assertEqualMessage(result["runningPaceQualifyingActivityCount"], 0, "a run outside the boundary must not be counted");
     return true;

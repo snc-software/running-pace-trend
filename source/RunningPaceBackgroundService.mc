@@ -22,7 +22,7 @@ class RunningPaceBackgroundService extends System.ServiceDelegate {
     function onTemporalEvent() as Void {
         try {
             var now = Time.now();
-            var windowStart = now.subtract(new Time.Duration(RunningPaceTrendCalculator.TOTAL_LOOKBACK_DAYS * SECONDS_PER_DAY)) as Time.Moment;
+            var windowStart = RunningPaceDayBoundary.startOfDay(now).subtract(new Time.Duration(RunningPaceTrendCalculator.TOTAL_LOOKBACK_DAYS * SECONDS_PER_DAY)) as Time.Moment;
 
             var reader = new RunningActivityHistoryReader();
             var records = reader.readAll(windowStart);

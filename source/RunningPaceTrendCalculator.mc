@@ -29,8 +29,9 @@ class RunningPaceTrendCalculator {
     // callers in RunningPaceBackgroundService don't redundantly reprocess the
     // same window twice per refresh (US-11 / #16).
     static function compare(records as Array<RunningActivityRecord>, now as Time.Moment, currentResult as Dictionary) as Dictionary {
-        var currentWindowStart = now.subtract(new Time.Duration(ROLLING_WINDOW_DAYS * SECONDS_PER_DAY)) as Time.Moment;
-        var previousWindowStart = now.subtract(new Time.Duration(TOTAL_LOOKBACK_DAYS * SECONDS_PER_DAY)) as Time.Moment;
+        var todayStart = RunningPaceDayBoundary.startOfDay(now);
+        var currentWindowStart = todayStart.subtract(new Time.Duration(ROLLING_WINDOW_DAYS * SECONDS_PER_DAY)) as Time.Moment;
+        var previousWindowStart = todayStart.subtract(new Time.Duration(TOTAL_LOOKBACK_DAYS * SECONDS_PER_DAY)) as Time.Moment;
 
         var current = currentResult;
         var previous = RunningPaceCalculator.calculateForWindow(records, previousWindowStart, currentWindowStart);
