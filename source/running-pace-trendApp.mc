@@ -21,6 +21,19 @@ class running_pace_trendApp extends Application.AppBase {
         if (Background.getTemporalEventRegisteredTime() == null) {
             Background.registerForTemporalEvent(new Time.Duration(BACKGROUND_REFRESH_INTERVAL_SECONDS));
         }
+
+        // Run the compute-and-persist refresh synchronously exactly once, on
+        // the first launch after install, so the trend graph has real data
+        // immediately instead of waiting for the first ~24h background tick
+        // (#36). Guarded by a dedicated one-time flag rather than by whether
+        // data was actually found, so a first attempt with insufficient
+        // on-device history is not retried on every subsequent app open —
+        // the daily background job above remains responsible for eventually
+        // populating it, exactly as it does today.
+        if (Application.Storage.getValue("runningPaceInitialSyncAttempted") != true) {
+            RunningPaceRefresh.run();
+            Application.Storage.setValue("runningPaceInitialSyncAttempted", true);
+        }
     }
 
     // onStop() is called when your application is exiting
