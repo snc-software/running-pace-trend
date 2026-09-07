@@ -18,10 +18,9 @@
     <string id="RunningTrendDetailUnchangedSuffix">sec/km</string>
     <string id="RunningTrendDetailInsufficientData">Not enough runs yet</string>
     <string id="RunningTrendDetailInsufficientHistory">Not enough history yet</string>
-    <string id="RunningTrendDetailSelectHint">SELECT: graph</string>
     <string id="RunningTrendGraphTitle">PACE TREND</string>
     <string id="RunningTrendGraphInsufficientData">Not enough runs yet</string>
     <string id="RunningTrendGraphInsufficientHistory">Not enough history yet</string>
-    <string id="RunningTrendGraphDaysAgoSuffix">d ago</string>
-    <string id="RunningTrendGraphNowLabel">Now</string>
+    <string id="RunningTrendGraphPeriodCaption">Last $1$ days</string>
+    <string id="RunningTrendGraphDeltaUnit">s/km</string>
 </strings>

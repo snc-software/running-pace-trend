@@ -9,16 +9,20 @@ class RunningPaceTrendFormatter {
     // Formats the arrow + number portion only, e.g. (FASTER, 11) -> "↑ 11".
     // The caller appends the direction-appropriate unit/qualifier suffix.
     static function format(direction as Number, deltaSecondsPerKm as Number) as String {
-        var arrow;
-        if (direction == RUNNING_PACE_TREND_DIRECTION_FASTER) {
-            arrow = "↑";
-        } else if (direction == RUNNING_PACE_TREND_DIRECTION_SLOWER) {
-            arrow = "↓";
-        } else {
-            arrow = "→";
-        }
+        return arrowFor(direction) + " " + deltaSecondsPerKm.toString();
+    }
 
-        return arrow + " " + deltaSecondsPerKm.toString();
+    // The arrow glyph alone (#29 graph redesign), for callers that show
+    // direction without a delta number, e.g. RunningPaceTrendGraphView's
+    // current-pace row. A missing/unrecognised direction falls back to the
+    // neutral arrow, matching format()'s own pre-existing else branch.
+    static function arrowFor(direction as Number?) as String {
+        if (direction == RUNNING_PACE_TREND_DIRECTION_FASTER) {
+            return "↑";
+        } else if (direction == RUNNING_PACE_TREND_DIRECTION_SLOWER) {
+            return "↓";
+        }
+        return "→";
     }
 
     // Formats integer tenths-of-a-percent as "N.N%", e.g. 23 -> "2.3%". No
