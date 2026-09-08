@@ -1,11 +1,9 @@
 <strings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
     <string id="AppName">running-pace-trend</string>
-    <string id="RunningPaceLabel" scope="glance">RUNNING PACE</string>
+    <string id="RunningPaceLabel" scope="glance">Running Pace</string>
     <string id="RunningPaceUnit" scope="glance">/km</string>
     <string id="RunningPaceInsufficientData" scope="glance">Not enough runs yet</string>
-    <string id="RunningPaceTrendFasterSuffix" scope="glance">sec/km faster</string>
-    <string id="RunningPaceTrendSlowerSuffix" scope="glance">sec/km slower</string>
-    <string id="RunningPaceTrendUnchangedSuffix" scope="glance">sec/km</string>
+    <string id="RunningPaceTrendDeltaUnit" scope="glance">s</string>
     <string id="RunningTrendDetailTitle">RUNNING TREND</string>
     <string id="RunningTrendDetailCurrentLabel">Current:</string>
     <string id="RunningTrendDetailPreviousLabel">Previous:</string>

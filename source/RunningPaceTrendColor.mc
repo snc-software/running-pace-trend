@@ -9,7 +9,7 @@ import Toybox.Lang;
 // is available yet, matching the graph line's original default color.
 //
 // Annotated (:glance) (#27) since RunningPaceGlanceView now also calls
-// forDirection() for its trend highlight bar - without this annotation the
+// forDirection() for its trend badge - without this annotation the
 // glance's isolated compilation unit doesn't include this class, and the
 // call fails at runtime with "Illegal Access (Out of Bounds)".
 (:glance)
