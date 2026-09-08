@@ -23,4 +23,14 @@
     <string id="RunningTrendGraphInsufficientHistory">Not enough history yet</string>
     <string id="RunningTrendGraphPeriodCaption">Last $1$ days</string>
     <string id="RunningTrendGraphDeltaUnit">s /km</string>
+    <string id="RunningTrendDebugTitle">DEBUG</string>
+    <string id="RunningTrendDebugLastUpdatedLabel">Last Updated At</string>
+    <string id="RunningTrendDebugNeverUpdated">Never</string>
+    <string id="RunningTrendDebugStatusLabel">Status:</string>
+    <string id="RunningTrendDebugStatusSuccess">Success</string>
+    <string id="RunningTrendDebugStatusFailed">Failed</string>
+    <string id="RunningTrendDebugStatusNeverRun">Never run</string>
+    <string id="RunningTrendDebugAttemptsLabel">Attempts:</string>
+    <string id="RunningTrendDebugNextRefreshLabel">Next Refresh:</string>
+    <string id="RunningTrendDebugNotScheduled">Not scheduled</string>
 </strings>

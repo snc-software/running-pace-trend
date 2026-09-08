@@ -1,17 +1,20 @@
 import Toybox.Lang;
 import Toybox.WatchUi;
 
-// Shared paging delegate for the app's two screens (#29): the graph screen
-// (RUNNING_PACE_TREND_PAGE_GRAPH, screen 1 / the app's initial view) and the
-// detail screen (RUNNING_PACE_TREND_PAGE_DETAIL, screen 2). Replaces the old
-// Select-only navigation - a fresh instance is paired with each view via
+// Shared paging delegate for the app's three screens (#29, extended to a
+// third by chore/debug-screen): the graph screen (RUNNING_PACE_TREND_PAGE_GRAPH,
+// screen 1 / the app's initial view), the detail screen
+// (RUNNING_PACE_TREND_PAGE_DETAIL, screen 2), and the debug screen
+// (RUNNING_PACE_TREND_PAGE_DEBUG, screen 3). Replaces the old Select-only
+// navigation - a fresh instance is paired with each view via
 // getInitialView()/switchToView(), constructed with which page it currently
 // represents so onNextPage()/onPreviousPage() know which sibling screen to
-// switch to. Only two screens exist today, so both directions toggle to the
-// other one; this is not meant to generalise past two pages without
-// revisiting the toggle logic below. No onSelect() override - Select no
-// longer navigates anywhere, per the issue's planned fix (also resolves #28,
-// since the "SELECT: graph" hint has nothing left to explain).
+// switch to. Pages cycle in enum order (Graph -> Detail -> Debug -> Graph)
+// via modulo arithmetic over RunningPaceTrendPageIndicatorContent.TOTAL_PAGES,
+// so adding a further screen only means adding it to buildView() below - no
+// more binary toggle to revisit. No onSelect() override - Select no longer
+// navigates anywhere, per the issue's planned fix (also resolves #28, since
+// the "SELECT: graph" hint has nothing left to explain).
 class RunningPaceTrendNavigationDelegate extends WatchUi.BehaviorDelegate {
 
     private var _currentPage as Number;
@@ -22,20 +25,28 @@ class RunningPaceTrendNavigationDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onNextPage() as Boolean {
-        switchPage(WatchUi.SLIDE_UP);
+        switchPage(WatchUi.SLIDE_UP, 1);
         return true;
     }
 
     function onPreviousPage() as Boolean {
-        switchPage(WatchUi.SLIDE_DOWN);
+        switchPage(WatchUi.SLIDE_DOWN, -1);
         return true;
     }
 
-    private function switchPage(transition as WatchUi.SlideType) as Void {
-        if (_currentPage == RUNNING_PACE_TREND_PAGE_GRAPH) {
-            WatchUi.switchToView(new running_pace_trendView(), new RunningPaceTrendNavigationDelegate(RUNNING_PACE_TREND_PAGE_DETAIL), transition);
+    private function switchPage(transition as WatchUi.SlideType, step as Number) as Void {
+        var totalPages = RunningPaceTrendPageIndicatorContent.TOTAL_PAGES;
+        var targetPage = ((_currentPage + step) % totalPages + totalPages) % totalPages;
+        WatchUi.switchToView(buildView(targetPage), new RunningPaceTrendNavigationDelegate(targetPage), transition);
+    }
+
+    private function buildView(page as Number) as WatchUi.View {
+        if (page == RUNNING_PACE_TREND_PAGE_GRAPH) {
+            return new RunningPaceTrendGraphView();
+        } else if (page == RUNNING_PACE_TREND_PAGE_DETAIL) {
+            return new running_pace_trendView();
         } else {
-            WatchUi.switchToView(new RunningPaceTrendGraphView(), new RunningPaceTrendNavigationDelegate(RUNNING_PACE_TREND_PAGE_GRAPH), transition);
+            return new RunningPaceDebugView();
         }
     }
 
