@@ -4,19 +4,36 @@ import Toybox.Time;
 
 // Shared compute-and-persist logic for the weighted pace and trend, backing
 // both RunningPaceBackgroundService's recurring temporal event and the
-// synchronous first-launch call from running_pace_trendApp.onStart() (#36).
-// Runs outside the Glance's execution budget (glance-standards.md Data
-// Refresh); RunningPaceGlanceView only ever reads the Application.Storage
-// values this writes. On the very first successful run (no snapshots stored
-// yet), RunningPaceTrendBackfill seeds that history retroactively from the
-// same `records` already loaded this call, so the graph screen has real
-// trend data immediately instead of only accumulating forward from install
-// day (#29).
+// synchronous foreground-open call from running_pace_trendApp.onStart()
+// (#36, extended to run on every open by #40, not just first install, so a
+// just-completed run is reflected promptly). Runs outside the Glance's
+// execution budget (glance-standards.md Data Refresh); RunningPaceGlanceView
+// only ever reads the Application.Storage values this writes. On the very
+// first successful run (no snapshots stored yet), RunningPaceTrendBackfill
+// seeds that history retroactively from the same `records` already loaded
+// this call, so the graph screen has real trend data immediately instead of
+// only accumulating forward from install day (#29).
 class RunningPaceRefresh {
 
     private static const SECONDS_PER_DAY = 86400;
 
-    static function run() as Void {
+    // No new methods may be added to this class. It is reached from both
+    // running_pace_trendApp.onStart() (foreground) and
+    // RunningPaceBackgroundService.onTemporalEvent() (background), and this
+    // app builds with "the 'Background' permission was enabled but no source
+    // code was annotated. The entire application will be loaded as a
+    // background process". Adding a method here shifts the layout the two
+    // scopes disagree about and crashes onStart() at runtime with "Illegal
+    // Access (Out of Bounds) / Failed invoking <symbol>" - confirmed in the
+    // simulator (see RESEARCH.md). Changing an existing method's signature,
+    // as run() does below, is safe; adding one is not. New shared helpers
+    // belong in a class reached from a single entry point, the way
+    // RunningPaceBackgroundSchedule is.
+
+    // Returns whether the run succeeded, so RunningPaceBackgroundService's
+    // scheduled path (#40) can retry a failed/throwing attempt; the
+    // foreground caller in onStart() ignores the return value.
+    static function run() as Boolean {
         try {
             var now = Time.now();
             var windowStart = RunningPaceDayBoundary.startOfDay(now).subtract(new Time.Duration(RunningPaceTrendCalculator.TOTAL_LOOKBACK_DAYS * SECONDS_PER_DAY)) as Time.Moment;
@@ -55,11 +72,15 @@ class RunningPaceRefresh {
                 );
                 Application.Storage.setValue("runningPaceTrendSnapshots", updatedSnapshots);
             }
+
+            return true;
         } catch (exception instanceof Lang.Exception) {
             // Leave any previously computed Storage values in place rather than
             // overwrite good data with a transient read failure; both callers
-            // (the daily background tick and the one-time first-launch call)
-            // keep showing the last successful result until the next chance to run.
+            // (the scheduled background tick, which retries on this false
+            // return per #40, and the foreground onStart() refresh) keep
+            // showing the last successful result until the next chance to run.
+            return false;
         }
     }
 
