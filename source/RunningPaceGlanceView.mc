@@ -40,7 +40,7 @@ class RunningPaceGlanceView extends WatchUi.GlanceView {
         // trend badge below carries the direction color, same as the graph
         // screen.
         var label = WatchUi.loadResource(Rez.Strings.RunningPaceLabel) as String;
-        dc.drawText(leftMargin, height * 0.05, Graphics.FONT_XTINY, label, Graphics.TEXT_JUSTIFY_LEFT);
+        dc.drawText(leftMargin, height * 0.05, Graphics.FONT_GLANCE, label, Graphics.TEXT_JUSTIFY_LEFT);
 
         if (valueState != RUNNING_PACE_GLANCE_VALUE_STATE_AVAILABLE) {
             var insufficientText = WatchUi.loadResource(Rez.Strings.RunningPaceInsufficientData) as String;
@@ -79,16 +79,17 @@ class RunningPaceGlanceView extends WatchUi.GlanceView {
         var iconHalfWidth = badgeRadius * 0.5;
         var iconHalfHeight = badgeRadius * 0.5;
         if (trendDirection == RUNNING_PACE_TREND_DIRECTION_FASTER) {
-            dc.fillPolygon([
-                [badgeCenterX, rowY - iconHalfHeight],
-                [badgeCenterX - iconHalfWidth, rowY + iconHalfHeight],
-                [badgeCenterX + iconHalfWidth, rowY + iconHalfHeight]
-            ] as Array<Graphics.Point2D>);
-        } else if (trendDirection == RUNNING_PACE_TREND_DIRECTION_SLOWER) {
+            // Faster means the time decreased, so the arrow points down (#46).
             dc.fillPolygon([
                 [badgeCenterX, rowY + iconHalfHeight],
                 [badgeCenterX - iconHalfWidth, rowY - iconHalfHeight],
                 [badgeCenterX + iconHalfWidth, rowY - iconHalfHeight]
+            ] as Array<Graphics.Point2D>);
+        } else if (trendDirection == RUNNING_PACE_TREND_DIRECTION_SLOWER) {
+            dc.fillPolygon([
+                [badgeCenterX, rowY - iconHalfHeight],
+                [badgeCenterX - iconHalfWidth, rowY + iconHalfHeight],
+                [badgeCenterX + iconHalfWidth, rowY + iconHalfHeight]
             ] as Array<Graphics.Point2D>);
         } else {
             dc.fillRectangle(badgeCenterX - iconHalfWidth, rowY - 1, iconHalfWidth * 2, 2);

@@ -152,16 +152,17 @@ class RunningPaceTrendGraphView extends WatchUi.View {
                 var iconHalfWidth = badgeRadius * 0.5;
                 var iconHalfHeight = badgeRadius * 0.5;
                 if (trendDirection == RUNNING_PACE_TREND_DIRECTION_FASTER) {
-                    dc.fillPolygon([
-                        [badgeCenterX, deltaRowY - iconHalfHeight],
-                        [badgeCenterX - iconHalfWidth, deltaRowY + iconHalfHeight],
-                        [badgeCenterX + iconHalfWidth, deltaRowY + iconHalfHeight]
-                    ] as Array<Graphics.Point2D>);
-                } else if (trendDirection == RUNNING_PACE_TREND_DIRECTION_SLOWER) {
+                    // Faster means the time decreased, so the arrow points down (#46).
                     dc.fillPolygon([
                         [badgeCenterX, deltaRowY + iconHalfHeight],
                         [badgeCenterX - iconHalfWidth, deltaRowY - iconHalfHeight],
                         [badgeCenterX + iconHalfWidth, deltaRowY - iconHalfHeight]
+                    ] as Array<Graphics.Point2D>);
+                } else if (trendDirection == RUNNING_PACE_TREND_DIRECTION_SLOWER) {
+                    dc.fillPolygon([
+                        [badgeCenterX, deltaRowY - iconHalfHeight],
+                        [badgeCenterX - iconHalfWidth, deltaRowY + iconHalfHeight],
+                        [badgeCenterX + iconHalfWidth, deltaRowY + iconHalfHeight]
                     ] as Array<Graphics.Point2D>);
                 } else {
                     dc.fillRectangle(badgeCenterX - iconHalfWidth, deltaRowY - 1, iconHalfWidth * 2, 2);
