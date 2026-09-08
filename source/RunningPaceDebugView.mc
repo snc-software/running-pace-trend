@@ -14,6 +14,11 @@ import Toybox.WatchUi;
 // read - no computation here, mirroring the other two screens.
 class RunningPaceDebugView extends WatchUi.View {
 
+    // Bumped by hand on every release (#47) so an instant on-device check of
+    // this screen shows which build is actually installed - useful because
+    // Connect IQ / the watch can cache a stale app after a sideload.
+    private const APP_VERSION = "v1.7.2";
+
     function initialize() {
         View.initialize();
     }
@@ -94,6 +99,8 @@ class RunningPaceDebugView extends WatchUi.View {
             nextRefreshText = RunningPaceTrendDateFormatter.formatDateTime(nextRefreshMoment.value());
         }
         dc.drawText(centerX, height * 0.74, Graphics.FONT_TINY, nextRefreshText, Graphics.TEXT_JUSTIFY_CENTER);
+
+        dc.drawText(centerX, height * 0.90, Graphics.FONT_XTINY, APP_VERSION, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
 }

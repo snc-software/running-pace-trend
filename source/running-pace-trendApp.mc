@@ -63,6 +63,7 @@ class running_pace_trendApp extends Application.AppBase {
         return [ new RunningPaceGlanceView() ];
     }
 
+    (:background)
     function getServiceDelegate() as [System.ServiceDelegate] {
         return [ new RunningPaceBackgroundService() ];
     }

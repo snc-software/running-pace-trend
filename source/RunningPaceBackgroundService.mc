@@ -16,6 +16,29 @@ import Toybox.Time;
 // separately from RunningPaceRefresh's own runningPaceLastComputedAt (which
 // the foreground onStart() refresh updates too), so the debug screen can show
 // the midnight schedule's health in isolation.
+//
+// Annotated (:background) (#47), deliberately on this class alone. Without
+// any (:background) tag anywhere, despite the Background permission, the app
+// compiled with "the entire application will be loaded as a background
+// process" and a real device crashed with "Illegal Access (Out of Bounds) /
+// Failed invoking <symbol>" (confirmed via an on-device crash log) -
+// RESEARCH.md's pre-existing, previously-unfixed crash class. (:background)
+// is additive, not exclusive, so this class stays fully available to the
+// foreground app too.
+//
+// This one tag is enough to silence that compiler warning on its own -
+// RunningPaceRefresh and everything downstream of it (RunningActivityHistoryReader,
+// RunningPaceCalculator, RunningPaceDayBoundary, etc.) deliberately stay
+// untagged. Tagging that whole call graph was tried first and instead
+// introduced a NEW, reproducible-in-the-simulator crash at onStart() (the
+// same "Illegal Access" abort, hit via RunningPaceBackgroundSchedule ->
+// RunningPaceDayBoundary) - two separate fresh simulator runs with only this
+// class tagged stayed crash-free. Untagged code already gets compiled into
+// every scope's binary by default, so tagging it too gains nothing and, per
+// RESEARCH.md, changing a shared class's annotations can itself shift the
+// compiled layout enough to trip this failure. Don't re-add tags downstream
+// of this class without re-running that bisection.
+(:background)
 class RunningPaceBackgroundService extends System.ServiceDelegate {
 
     // "retry 3 times" (#40) taken as up to 4 total attempts - the first
