@@ -1,3 +1,4 @@
+import Toybox.Application;
 import Toybox.Background;
 import Toybox.System;
 import Toybox.Time;
@@ -10,6 +11,11 @@ import Toybox.Time;
 // running-pace-trendApp registers this event with a Time.Moment (the next
 // local midnight) rather than the pre-#40 rolling Duration, and a Moment fires
 // only once, so this delegate re-arms the following midnight on every firing.
+// Also records its own outcome (chore/debug-screen) into Application.Storage -
+// when it last ran, whether it succeeded, and how many attempts it took -
+// separately from RunningPaceRefresh's own runningPaceLastComputedAt (which
+// the foreground onStart() refresh updates too), so the debug screen can show
+// the midnight schedule's health in isolation.
 class RunningPaceBackgroundService extends System.ServiceDelegate {
 
     // "retry 3 times" (#40) taken as up to 4 total attempts - the first
@@ -29,6 +35,10 @@ class RunningPaceBackgroundService extends System.ServiceDelegate {
             succeeded = RunningPaceRefresh.run();
             attempt++;
         }
+
+        Application.Storage.setValue("runningPaceLastMidnightRefreshAt", Time.now().value());
+        Application.Storage.setValue("runningPaceLastMidnightRefreshSucceeded", succeeded);
+        Application.Storage.setValue("runningPaceLastMidnightRefreshAttempts", attempt);
 
         // Computed here from RunningPaceDayBoundary rather than via
         // RunningPaceBackgroundSchedule.nextMidnight(): that class is reached

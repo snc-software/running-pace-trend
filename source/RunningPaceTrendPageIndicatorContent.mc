@@ -2,11 +2,12 @@ import Toybox.Lang;
 
 enum {
     RUNNING_PACE_TREND_PAGE_GRAPH,
-    RUNNING_PACE_TREND_PAGE_DETAIL
+    RUNNING_PACE_TREND_PAGE_DETAIL,
+    RUNNING_PACE_TREND_PAGE_DEBUG
 }
 
 // Pure geometry for the hand-drawn page-indicator dots shown on the left edge
-// of both Running Trend screens, mirroring the native Training Status
+// of all three Running Trend screens, mirroring the native Training Status
 // widget's own page dots - Connect IQ's WatchUi has no built-in page
 // indicator component (#29), so each screen draws these itself. Decoupled
 // from Dc so the dot layout is unit testable (coding-standards.md Testing
@@ -15,7 +16,7 @@ enum {
 // of a *Content class supplying pure geometry/state to a thin View.
 class RunningPaceTrendPageIndicatorContent {
 
-    static const TOTAL_PAGES = 2;
+    static const TOTAL_PAGES = 3;
     static const ACTIVE_DOT_RADIUS = 3;
     static const INACTIVE_DOT_RADIUS = 2;
 
