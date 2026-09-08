@@ -17,7 +17,7 @@ class RunningPaceDebugView extends WatchUi.View {
     // Bumped by hand on every release (#47) so an instant on-device check of
     // this screen shows which build is actually installed - useful because
     // Connect IQ / the watch can cache a stale app after a sideload.
-    private const APP_VERSION = "v1.7.2";
+    private const APP_VERSION = "v1.7.5";
 
     function initialize() {
         View.initialize();

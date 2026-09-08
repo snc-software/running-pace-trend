@@ -14,14 +14,12 @@ class RunningPaceGlanceView extends WatchUi.GlanceView {
     // instantiation, so repeated WatchUi.loadResource() calls are avoidable
     // per-draw cost per glance-standards.md's Execution Budget rule.
     //
-    // Deliberately NOT loaded in initialize(): #47's first attempt did that,
-    // and the on-device blank row reappeared with the title itself missing
-    // too. An initialize()-time loadResource() failure would explain exactly
-    // that - either the view fails to construct at all, or these fields stay
-    // null and the (then-unconditional, unguarded) dc.drawText(..., null,
-    // ...) for the title throws before anything else in onUpdate() runs.
-    // Loading lazily from inside the guarded draw() below means a load
-    // failure is caught like everything else instead of aborting the view.
+    // Note: neither this caching nor the try/catch in onUpdate() below was
+    // what actually fixed #47's permanently-blank row. That turned out to be
+    // running_pace_trendApp.onStart() invoking non-(:glance) code from the
+    // Glance's own 32kB scope; see that file's comment. Both are kept as
+    // defensive hygiene that this budgeted view wants anyway, but do not
+    // mistake them for the fix - a native scope abort is not catchable here.
     private var _label as String?;
     private var _unit as String?;
     private var _insufficientDataText as String?;
@@ -35,14 +33,12 @@ class RunningPaceGlanceView extends WatchUi.GlanceView {
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         dc.clear();
 
-        // #47: the row was reported to render fully blank - title included -
-        // on a real device, permanently once it started, but this doesn't
-        // reproduce in the simulator. dc.clear() above only touches pixels
-        // so it can't itself be the failure; everything else - resource
-        // loads, Storage reads, and all drawing, including the title - is
-        // wrapped here so an unhandled exception anywhere in it can no
-        // longer abort onUpdate() partway through and leave the row in an
-        // undefined state.
+        // Guards the whole body (#47) so a recoverable failure in resource
+        // loading, a Storage read, or drawing leaves the row cleared rather
+        // than half-drawn. This does NOT guard against the scope abort that
+        // actually caused #47 - that killed the process before onUpdate()
+        // was ever entered - but it is still the right shape for a view the
+        // OS can blank or kill at any time (glance-standards.md).
         try {
             draw(dc);
         } catch (exception instanceof Lang.Exception) {

@@ -17,8 +17,41 @@ class running_pace_trendApp extends Application.AppBase {
         AppBase.initialize();
     }
 
-    // onStart() is called on application start up
+    // Deliberately does NOTHING (#47). onStart() is called in EVERY scope the
+    // app can start in - widget, background service, and Glance ("The AppBase
+    // functions onStart() and getGlanceView() will be called to start the app
+    // and retrieve the view during a background update in glance mode",
+    // Toybox.Application.AppBase docs) - but the Glance is compiled as its own
+    // separate, 32kB-limited binary containing only (:glance)-annotated code.
+    //
+    // Anything onStart() touches that is not (:glance) therefore does not
+    // exist in the Glance's binary, and invoking it aborts the Glance process
+    // natively with "Illegal Access (Out of Bounds) / Failed invoking
+    // <symbol>" - not a catchable Lang.Exception. That was the real cause of
+    // #47's permanently-blank Glance row: onStart() used to call
+    // RunningPaceRefresh.run() (#40's foreground refresh) behind a 60s
+    // throttle, so the Glance rendered fine for the first minute after an
+    // open, then aborted on every render forever after, exactly as reported.
+    //
+    // Keep this method empty. Widget-only startup work belongs in
+    // getInitialView() below, which is the one entry point the Glance and the
+    // background service never call. See RESEARCH.md.
     function onStart(state as Dictionary?) as Void {
+    }
+
+    // onStop() is called when your application is exiting
+    function onStop(state as Dictionary?) as Void {
+    }
+
+    // Return the initial view of your application here. The graph screen is
+    // screen 1 (#29).
+    //
+    // This is also where all startup work lives (#47), moved here out of
+    // onStart(). The Glance calls getGlanceView() and the background service
+    // calls getServiceDelegate(); only a real widget open calls this, so
+    // non-(:glance) code invoked here can never abort the 32kB Glance
+    // process the way it did from onStart(). See onStart()'s comment.
+    function getInitialView() as [Views] or [Views, InputDelegates] {
         // Fixed local-midnight schedule (#40), replacing the pre-#40 rolling
         // ~24h Duration interval that drifted with whatever time of day the
         // app happened to be installed at. A Moment registration fires once,
@@ -46,15 +79,7 @@ class running_pace_trendApp extends Application.AppBase {
         if (lastComputedAt == null || missingTrendWindowBoundaries || Time.now().value() - lastComputedAt >= FOREGROUND_REFRESH_THROTTLE_SECONDS) {
             RunningPaceRefresh.run();
         }
-    }
 
-    // onStop() is called when your application is exiting
-    function onStop(state as Dictionary?) as Void {
-    }
-
-    // Return the initial view of your application here. The graph screen is
-    // screen 1 (#29).
-    function getInitialView() as [Views] or [Views, InputDelegates] {
         return [ new RunningPaceTrendGraphView(), new RunningPaceTrendNavigationDelegate(RUNNING_PACE_TREND_PAGE_GRAPH) ];
     }
 
@@ -63,7 +88,8 @@ class running_pace_trendApp extends Application.AppBase {
         return [ new RunningPaceGlanceView() ];
     }
 
-    (:background)
+    // Deliberately not annotated (:background) - see
+    // RunningPaceBackgroundService.mc's comment.
     function getServiceDelegate() as [System.ServiceDelegate] {
         return [ new RunningPaceBackgroundService() ];
     }
