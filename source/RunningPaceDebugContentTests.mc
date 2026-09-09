@@ -1,3 +1,4 @@
+import Toybox.Activity;
 import Toybox.Lang;
 import Toybox.Test;
 
@@ -20,29 +21,74 @@ function resolvesFailedWhenTheRefreshDidNotSucceed(logger as Logger) as Boolean 
 }
 
 (:test)
-function formatsTheScanSummaryFromAllFourCounters(logger as Logger) as Boolean {
-    Test.assertEqualMessage(RunningPaceDebugContent.formatScanSummary(1236, 45, 2741, RUNNING_PACE_SCAN_ORDER_NEWEST_FIRST), "1236/45 2741ms D", "the scan summary must report scanned, retained, duration and order in that order");
-    return true;
-}
-
-(:test)
-function formatsEachScanOrderAsItsOwnLetter(logger as Logger) as Boolean {
-    Test.assertEqualMessage(RunningPaceDebugContent.formatScanSummary(1, 1, 1, RUNNING_PACE_SCAN_ORDER_OLDEST_FIRST), "1/1 1ms A", "oldest-first must render as A");
-    Test.assertEqualMessage(RunningPaceDebugContent.formatScanSummary(1, 1, 1, RUNNING_PACE_SCAN_ORDER_MIXED), "1/1 1ms M", "mixed must render as M");
-    Test.assertEqualMessage(RunningPaceDebugContent.formatScanSummary(1, 1, 1, RUNNING_PACE_SCAN_ORDER_UNKNOWN), "1/1 1ms ?", "an undetermined order must render as ?");
-    Test.assertEqualMessage(RunningPaceDebugContent.formatScanSummary(1, 1, 1, null), "1/1 1ms ?", "a missing order must render as ? rather than omitting the whole row");
+function formatsTheScanSummaryFromBothCounters(logger as Logger) as Boolean {
+    Test.assertEqualMessage(RunningPaceDebugContent.formatScanSummary(246, 45), "246/45", "the scan summary must report scanned then retained");
     return true;
 }
 
 (:test)
 function formatsAZeroScanSummary(logger as Logger) as Boolean {
-    Test.assertEqualMessage(RunningPaceDebugContent.formatScanSummary(0, 0, 0, RUNNING_PACE_SCAN_ORDER_UNKNOWN), "0/0 0ms ?", "an empty history must still format rather than being treated as unrecorded");
+    Test.assertEqualMessage(RunningPaceDebugContent.formatScanSummary(0, 0), "0/0", "an empty history must still format rather than being treated as unrecorded");
+    return true;
+}
+
+// Every "must be null" assertion in this file uses assertMessage with an
+// explicit == null rather than assertEqualMessage(..., null, ...). The latter
+// does not work: Test.assertEqual dereferences its expected value, so passing
+// null aborts the test with "Unexpected Type Error / Failed invoking <symbol>"
+// instead of comparing anything. Two assertions in this file were written that
+// way before #49 and had been erroring silently in the suite's summary line
+// ever since; they are corrected here along with the new ones.
+(:test)
+function omitsTheScanSummaryWhenNothingHasBeenRecordedYet(logger as Logger) as Boolean {
+    Test.assertMessage(RunningPaceDebugContent.formatScanSummary(null, null) == null, "an install predating the scan counters must omit the row");
+    Test.assertMessage(RunningPaceDebugContent.formatScanSummary(246, null) == null, "a partially recorded scan must omit the row rather than draw a gap");
+    Test.assertMessage(RunningPaceDebugContent.formatScanSummary(null, 45) == null, "a missing scanned count must omit the row too");
     return true;
 }
 
 (:test)
-function omitsTheScanSummaryWhenNothingHasBeenRecordedYet(logger as Logger) as Boolean {
-    Test.assertEqualMessage(RunningPaceDebugContent.formatScanSummary(null, null, null, null), null, "an install predating the scan counters must omit the row");
-    Test.assertEqualMessage(RunningPaceDebugContent.formatScanSummary(318, null, 210, RUNNING_PACE_SCAN_ORDER_NEWEST_FIRST), null, "a partially recorded scan must omit the row rather than draw a gap");
+function resolvesNeverFiredWhenTheActivityEventHasNotRun(logger as Logger) as Boolean {
+    Test.assertEqualMessage(RunningPaceDebugContent.resolveActivityEventOutcome(null), RUNNING_PACE_ACTIVITY_EVENT_NEVER_FIRED, "a null stored outcome must resolve to NEVER_FIRED");
+    return true;
+}
+
+(:test)
+function resolvesEachStoredActivityEventOutcome(logger as Logger) as Boolean {
+    Test.assertEqualMessage(RunningPaceDebugContent.resolveActivityEventOutcome(RUNNING_PACE_ACTIVITY_EVENT_SKIPPED_NOT_RUNNING), RUNNING_PACE_ACTIVITY_EVENT_SKIPPED_NOT_RUNNING, "a skipped firing must round-trip");
+    Test.assertEqualMessage(RunningPaceDebugContent.resolveActivityEventOutcome(RUNNING_PACE_ACTIVITY_EVENT_REFRESHED), RUNNING_PACE_ACTIVITY_EVENT_REFRESHED, "a refreshed firing must round-trip");
+    Test.assertEqualMessage(RunningPaceDebugContent.resolveActivityEventOutcome(RUNNING_PACE_ACTIVITY_EVENT_REFRESH_FAILED), RUNNING_PACE_ACTIVITY_EVENT_REFRESH_FAILED, "a failed firing must round-trip");
+    return true;
+}
+
+(:test)
+function formatsRunningAsItsOwnSportLabel(logger as Logger) as Boolean {
+    Test.assertEqualMessage(RunningPaceDebugContent.formatSport(Activity.SPORT_RUNNING, "Run"), "Run", "running must render as the supplied label, since it is the only sport that triggers a refresh");
+    return true;
+}
+
+(:test)
+function formatsAnyOtherSportByItsNumber(logger as Logger) as Boolean {
+    Test.assertEqualMessage(RunningPaceDebugContent.formatSport(Activity.SPORT_CYCLING, "Run"), "#" + Activity.SPORT_CYCLING.toString(), "a non-running sport must render as its raw number, never as the running label");
+    return true;
+}
+
+(:test)
+function omitsTheSportWhenTheEventHasNeverFired(logger as Logger) as Boolean {
+    Test.assertMessage(RunningPaceDebugContent.formatSport(null, "Run") == null, "no recorded sport must omit the row rather than claim one that was never seen");
+    return true;
+}
+
+(:test)
+function reportsTheEventCountsOnlyWhenThatFiringRefreshed(logger as Logger) as Boolean {
+    Test.assertEqualMessage(RunningPaceDebugContent.formatEventCounts(RUNNING_PACE_ACTIVITY_EVENT_REFRESHED, 246, 47), "246/47", "a refreshed firing must report its own scanned/retained counts");
+    return true;
+}
+
+(:test)
+function omitsTheEventCountsUnlessTheEventRefreshed(logger as Logger) as Boolean {
+    Test.assertMessage(RunningPaceDebugContent.formatEventCounts(RUNNING_PACE_ACTIVITY_EVENT_SKIPPED_NOT_RUNNING, 246, 47) == null, "a skipped firing ran no scan, so stale counts must not be shown under its timestamp");
+    Test.assertMessage(RunningPaceDebugContent.formatEventCounts(RUNNING_PACE_ACTIVITY_EVENT_REFRESH_FAILED, 246, 47) == null, "a failed firing produced no counts of its own");
+    Test.assertMessage(RunningPaceDebugContent.formatEventCounts(RUNNING_PACE_ACTIVITY_EVENT_NEVER_FIRED, null, null) == null, "an event that never fired must omit the row");
     return true;
 }

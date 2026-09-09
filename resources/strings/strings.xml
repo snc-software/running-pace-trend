@@ -31,4 +31,13 @@
     <string id="RunningTrendDebugAttemptsLabel">Attempts:</string>
     <string id="RunningTrendDebugNextRefreshLabel">Next Refresh:</string>
     <string id="RunningTrendDebugNotScheduled">Not scheduled</string>
+    <string id="RunningTrendActivityTitle">ACTIVITY</string>
+    <string id="RunningTrendActivityLastFiredLabel">Last Fired</string>
+    <string id="RunningTrendActivitySportLabel">Sport:</string>
+    <string id="RunningTrendActivitySportRunning">Run</string>
+    <string id="RunningTrendActivityOutcomeRefreshed">Refreshed</string>
+    <string id="RunningTrendActivityOutcomeNotRunning">Not a run</string>
+    <string id="RunningTrendActivityArmedLabel">Armed:</string>
+    <string id="RunningTrendActivityArmedYes">Yes</string>
+    <string id="RunningTrendActivityArmedNo">No</string>
 </strings>

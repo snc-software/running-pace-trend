@@ -7,19 +7,6 @@ import Toybox.WatchUi;
 
 class running_pace_trendApp extends Application.AppBase {
 
-    // Upper bound on how often a foreground open re-runs the refresh (#40).
-    // Small enough that opening the app after finishing a run always picks
-    // that run up, large enough that flicking in and out of the widget does
-    // not recompute the whole trend window each time.
-    //
-    // Briefly raised to 15 minutes while a full refresh still froze the UI for
-    // its whole ~2.7s duration; back to 60s now that RunningPaceForegroundRefresh
-    // chunks the scan across timer ticks and the refresh no longer blocks
-    // interaction (#47 follow-up). The throttle is back to meaning what it
-    // originally meant - how stale the data may get - rather than papering over
-    // a stall.
-    private const FOREGROUND_REFRESH_THROTTLE_SECONDS = 60;
-
     function initialize() {
         AppBase.initialize();
     }
@@ -68,35 +55,55 @@ class running_pace_trendApp extends Application.AppBase {
             Background.registerForTemporalEvent(RunningPaceBackgroundSchedule.nextMidnight(Time.now()));
         }
 
-        // Refresh on a foreground open (#40) so the trend graph and Glance
-        // reflect a just-completed run promptly, rather than only after the
-        // next midnight tick - there is no confirmed Connect IQ "activity
-        // completed" event a separate widget can subscribe to. This replaces
-        // #36's one-shot runningPaceInitialSyncAttempted flag: refreshing on
-        // open already covers the first launch after install, so the trend
-        // graph still has real data immediately.
+        // Subscribe to the OS's activity-completed event (#49), so a finished
+        // run refreshes the trend data in background scope and the Glance shows
+        // it without the widget being opened at all.
+        //
+        // This CORRECTS a claim that stood in this comment from #40 until #49:
+        // that there is no confirmed Connect IQ "activity completed" event a
+        // separate widget can subscribe to. There is.
+        // Background.registerForActivityCompletedEvent() and
+        // System.ServiceDelegate.onActivityCompleted() have existed since SDK
+        // 3.0.10, well below this app's declared minApiLevel of 6.0.0, and both
+        // appear in fr970's own device API table - not just the generic SDK
+        // docs. The same false claim reached RESEARCH.md and #40's plan and is
+        // corrected in both. It mattered: believing it is what put a 2.7-second
+        // synchronous history scan on the foreground path in the first place,
+        // and every regression from v1.7.5 to v1.7.9 was an attempt to find
+        // somewhere on the UI thread to put it. There isn't one.
+        //
+        // Guarded so an existing registration is left alone. Also re-asserted
+        // from RunningPaceBackgroundService.onTemporalEvent(), so a registration
+        // lost to a reboot heals at the next midnight rather than waiting for
+        // the user to open the widget.
+        if (!Background.getActivityCompletedEventRegistered()) {
+            Background.registerForActivityCompletedEvent();
+        }
+
+        // The fresh-install refresh, and since #49 the ONLY history scan on any
+        // foreground path. The on-open refresh that used to sit alongside it -
+        // #40's, deferred to a post-first-frame timer and then chunked across
+        // ticks by #47's follow-up - is gone, replaced by the background event
+        // registered above.
+        //
+        // What remains is CRASH SAFETY, not a staleness optimisation, which is
+        // why it could not go with it: #37 found running-pace-trendView.mc reads
+        // the trend window boundary keys with an unconditional `as Number` and
+        // crashes on null, so an install that is fresh, or upgraded from a
+        // version predating those keys, must be populated before any view is
+        // handed back. It cannot be delegated to the activity-completed event
+        // either - a fresh install has no completed activity to wait for, and
+        // midnight could be 23 hours away.
+        //
+        // It refreshes SYNCHRONOUSLY, before this method returns a view, and
+        // blocks for the whole ~2.7s. That is acceptable only because it runs
+        // once per install rather than per open, and because there is nothing
+        // valid in Storage to draw until it finishes.
         var lastComputedAt = Application.Storage.getValue("runningPaceLastComputedAt") as Number?;
         var missingTrendWindowBoundaries = Application.Storage.getValue("runningPaceTrendCurrentWindowStartEpoch") == null;
 
         if (lastComputedAt == null || missingTrendWindowBoundaries) {
-            // The only case that still refreshes SYNCHRONOUSLY, i.e. before
-            // this method returns a view. There is nothing valid in Storage to
-            // draw yet, and #37 found running-pace-trendView.mc reads the trend
-            // window boundary keys with an unconditional `as Number` and
-            // crashes on null - so an install that is fresh, or upgraded from a
-            // version predating those keys, must be populated before any view
-            // is handed back. This path runs once per install, not per open.
             RunningPaceRefresh.run();
-        } else if (Time.now().value() - lastComputedAt >= FOREGROUND_REFRESH_THROTTLE_SECONDS) {
-            // The ordinary "data is stale" case: Storage already holds a
-            // complete, drawable result, so hand back the view immediately and
-            // let RunningPaceForegroundRefresh re-run the scan on a one-shot
-            // timer once the first frame is up (#47 follow-up). Running it
-            // inline here instead is what made opening the app visibly slow
-            // whenever more than FOREGROUND_REFRESH_THROTTLE_SECONDS had
-            // passed since the last open - the activity-history scan sat
-            // between the button press and the first pixel. See that class.
-            RunningPaceForegroundRefresh.schedule();
         }
 
         return [ new RunningPaceTrendGraphView(), new RunningPaceTrendNavigationDelegate(RUNNING_PACE_TREND_PAGE_GRAPH) ];
