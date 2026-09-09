@@ -17,7 +17,7 @@ class RunningPaceDebugView extends WatchUi.View {
     // Bumped by hand on every release (#47) so an instant on-device check of
     // this screen shows which build is actually installed - useful because
     // Connect IQ / the watch can cache a stale app after a sideload.
-    private const APP_VERSION = "v1.7.5";
+    private const APP_VERSION = "v1.7.9";
 
     function initialize() {
         View.initialize();
@@ -99,6 +99,29 @@ class RunningPaceDebugView extends WatchUi.View {
             nextRefreshText = RunningPaceTrendDateFormatter.formatDateTime(nextRefreshMoment.value());
         }
         dc.drawText(centerX, height * 0.74, Graphics.FONT_TINY, nextRefreshText, Graphics.TEXT_JUSTIFY_CENTER);
+
+        // Last activity-history scan (#47 follow-up): how deep the scan went,
+        // how much of it landed inside the trend window, the whole refresh's
+        // wall-clock cost, and the iterator's observed ordering - see
+        // RunningPaceDebugContent.formatScanSummary() for the format. Drawn
+        // only once a refresh has recorded them, so an install upgraded from a
+        // version predating these keys just omits the row.
+        //
+        // Sits in the gap between the attempts and "Next Refresh:" rows, near
+        // the vertical middle, rather than down by the version string. This is
+        // the widest row on the screen and a round display's usable chord
+        // narrows sharply toward the bottom, which clipped both ends of the
+        // first version of this string on-device; here the chord is at its
+        // widest and the space was empty anyway.
+        var scanSummary = RunningPaceDebugContent.formatScanSummary(
+            Application.Storage.getValue("runningPaceLastScanScannedCount") as Number?,
+            Application.Storage.getValue("runningPaceLastScanRetainedCount") as Number?,
+            Application.Storage.getValue("runningPaceLastScanDurationMs") as Number?,
+            Application.Storage.getValue("runningPaceLastScanOrder") as Number?
+        );
+        if (scanSummary != null) {
+            dc.drawText(centerX, height * 0.60, Graphics.FONT_XTINY, scanSummary, Graphics.TEXT_JUSTIFY_CENTER);
+        }
 
         dc.drawText(centerX, height * 0.90, Graphics.FONT_XTINY, APP_VERSION, Graphics.TEXT_JUSTIFY_CENTER);
     }
